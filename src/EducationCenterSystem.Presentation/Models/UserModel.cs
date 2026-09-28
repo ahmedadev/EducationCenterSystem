@@ -1,4 +1,4 @@
-namespace EducationCenterSystem.Presentation.Models;
+namespace EducationCenterSystem.Presentation.WinForms.Models;
 
 public sealed class UserModel
 {

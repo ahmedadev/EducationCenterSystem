@@ -1,6 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace EducationCenterSystem.Presentation.Models;
+namespace EducationCenterSystem.Presentation.WinForms.Models;
 
 public partial class PermissionItemModel : ObservableObject
 {

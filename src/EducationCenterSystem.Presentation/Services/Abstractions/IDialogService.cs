@@ -1,4 +1,4 @@
-namespace EducationCenterSystem.Presentation.Services.Abstractions;
+namespace EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
 
 public interface IDialogService
 {

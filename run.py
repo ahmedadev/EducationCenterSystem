@@ -48,6 +48,7 @@ def stop_old_processes():
     processes_to_kill = [
         "EducationCenterSystem.Api.exe",
         "EducationCenterSystem.Presentation.exe",
+        "EducationCenterSystem.Presentation.WinForms.exe",
         "MSBuild.exe",
         "VBCSCompiler.exe",
     ]

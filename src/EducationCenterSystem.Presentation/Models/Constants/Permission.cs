@@ -1,4 +1,4 @@
-﻿namespace EducationCenterSystem.Presentation.Models.Constants;
+﻿namespace EducationCenterSystem.Presentation.WinForms.Models.Constants;
 
 public static class Permission
 {

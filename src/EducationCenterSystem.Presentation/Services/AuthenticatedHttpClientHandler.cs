@@ -1,8 +1,7 @@
-using System.Net.Http;
 using System.Net.Http.Headers;
-using EducationCenterSystem.Presentation.Services.Abstractions;
+using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
 
-namespace EducationCenterSystem.Presentation.Services;
+namespace EducationCenterSystem.Presentation.WinForms.Services;
 
 public sealed class AuthenticatedHttpClientHandler : DelegatingHandler
 {

@@ -1,9 +1,7 @@
-﻿using EducationCenterSystem.Presentation.Models.DTOs;
-using EducationCenterSystem.Presentation.Models.Constants;
-using EducationCenterSystem.Presentation.Models.Enums;
+﻿using EducationCenterSystem.Presentation.WinForms.Models.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 
-namespace EducationCenterSystem.Presentation.Models;
+namespace EducationCenterSystem.Presentation.WinForms.Models;
 
 public partial class StudentModel : ObservableObject
 {
