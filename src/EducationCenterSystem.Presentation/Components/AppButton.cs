@@ -114,6 +114,21 @@ public class AppButton : Button
     protected override void OnPaint(PaintEventArgs pevent)
     {
         var g = pevent.Graphics;
+        
+        // Prevent ghosting/remnants by clearing the background with the actual parent solid color
+        Color parentBg = BackColor;
+        Control? currentParent = Parent;
+        while (currentParent != null)
+        {
+            if (currentParent.BackColor != Color.Transparent)
+            {
+                parentBg = currentParent.BackColor;
+                break;
+            }
+            currentParent = currentParent.Parent;
+        }
+        g.Clear(parentBg);
+
         g.SmoothingMode = SmoothingMode.AntiAlias;
 
         var rect = new Rectangle(0, 0, Width - 1, Height - 1);

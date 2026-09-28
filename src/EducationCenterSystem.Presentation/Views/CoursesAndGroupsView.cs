@@ -28,21 +28,38 @@ public class CoursesAndGroupsView : UserControl
         RightToLeft = RightToLeft.Yes;
 
         // Top Header
-        var topPanel = new Panel
+        var topPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 70,
+            Height = 85,
             BackColor = AppTheme.SurfaceCard,
-            Padding = new Padding(16, 12, 16, 12)
+            Padding = new Padding(16, 12, 16, 12),
+            ColumnCount = 2,
+            RowCount = 1,
+            RightToLeft = RightToLeft.Yes
         };
+        topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
+        var titleContainer = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
         var titleLabel = new Label
         {
             Text = "إدارة المواد والمجموعات التعليمية",
             Font = AppTheme.FontHero,
             ForeColor = AppTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(16, 10)
+            Location = new Point(0, 0)
+        };
+        titleContainer.Controls.Add(titleLabel);
+
+        var actionContainer = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 10, 0, 0),
+            AutoSize = true
         };
 
         _btnRefresh = new AppButton
@@ -50,13 +67,15 @@ public class CoursesAndGroupsView : UserControl
             Text = "تحديث الكل",
             Variant = ButtonVariant.Secondary,
             Width = 110,
-            Height = 36,
-            Location = new Point(16, 16)
+            Height = 40,
+            Margin = new Padding(0)
         };
         _btnRefresh.Click += async (s, e) => await LoadDataAsync();
 
-        topPanel.Controls.Add(titleLabel);
-        topPanel.Controls.Add(_btnRefresh);
+        actionContainer.Controls.Add(_btnRefresh);
+
+        topPanel.Controls.Add(titleContainer, 0, 0);
+        topPanel.Controls.Add(actionContainer, 1, 0);
 
         // Main Layout (Split: Right is Course Form, Left is Tables)
         var split = new SplitContainer

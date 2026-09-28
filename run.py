@@ -20,11 +20,12 @@ from pathlib import Path
 ROOT_DIR = Path(__file__).resolve().parent
 SLN_FILE = ROOT_DIR / "EducationCenterSystem.sln"
 API_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Api" / "EducationCenterSystem.Api.csproj"
-FRONTEND_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "EducationCenterSystem.Presentation.csproj"
-FRONTEND_WINFORMS_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Presentation.WinForms" / "EducationCenterSystem.Presentation.WinForms.csproj"
+FRONTEND_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "EducationCenterSystem.Presentation.WinForms.csproj"
+FRONTEND_WINFORMS_PROJ = FRONTEND_PROJ
+
 API_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Api" / "bin" / "Debug" / "net9.0" / "EducationCenterSystem.Api.dll"
-FRONTEND_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "bin" / "Debug" / "net9.0-windows" / "EducationCenterSystem.Presentation.dll"
-FRONTEND_WINFORMS_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Presentation.WinForms" / "bin" / "Debug" / "net9.0-windows" / "EducationCenterSystem.Presentation.WinForms.dll"
+FRONTEND_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "bin" / "Debug" / "net9.0-windows" / "EducationCenterSystem.Presentation.WinForms.dll"
+FRONTEND_WINFORMS_BIN = FRONTEND_BIN
 
 API_PORT = 5145
 API_HEALTH_URL = f"http://127.0.0.1:{API_PORT}/swagger/index.html"
@@ -106,17 +107,39 @@ def clean_artifacts():
     print(f"       -> Removed {deleted_count} build artifact directories.", flush=True)
 
 
-def build_solution():
-    """Compile the entire solution."""
-    log("Step 3/5: Compiling solution (dotnet build)...")
-    res = subprocess.run(
-        ["dotnet", "build", str(SLN_FILE), "--configuration", "Debug", "--nologo"],
-        cwd=str(ROOT_DIR)
-    )
-    if res.returncode != 0:
-        print("\n[ERROR] Compilation failed! Fix build errors and retry.", file=sys.stderr)
-        sys.exit(res.returncode)
-    print("       -> Build completed successfully.", flush=True)
+def build_projects(fast: bool = False):
+    """Compile projects (fast mode compiles only Backend & Frontend, skipping test projects)."""
+    if fast:
+        log("Step 3/5: Fast compiling Backend & Frontend (skipping tests)...")
+        # Build API (which transitively builds Domain, Application, Infrastructure)
+        res_api = subprocess.run(
+            ["dotnet", "build", str(API_PROJ), "--configuration", "Debug", "--nologo"],
+            cwd=str(ROOT_DIR)
+        )
+        if res_api.returncode != 0:
+            print("\n[ERROR] Backend compilation failed! Fix build errors and retry.", file=sys.stderr)
+            sys.exit(res_api.returncode)
+
+        # Build Frontend
+        res_fe = subprocess.run(
+            ["dotnet", "build", str(FRONTEND_PROJ), "--configuration", "Debug", "--nologo"],
+            cwd=str(ROOT_DIR)
+        )
+        if res_fe.returncode != 0:
+            print("\n[ERROR] Frontend compilation failed! Fix build errors and retry.", file=sys.stderr)
+            sys.exit(res_fe.returncode)
+
+        print("       -> Fast build completed successfully (Backend + Frontend).", flush=True)
+    else:
+        log("Step 3/5: Compiling entire solution (dotnet build)...")
+        res = subprocess.run(
+            ["dotnet", "build", str(SLN_FILE), "--configuration", "Debug", "--nologo"],
+            cwd=str(ROOT_DIR)
+        )
+        if res.returncode != 0:
+            print("\n[ERROR] Compilation failed! Fix build errors and retry.", file=sys.stderr)
+            sys.exit(res.returncode)
+        print("       -> Build completed successfully.", flush=True)
 
 
 def is_port_open(host: str, port: int, timeout_sec: float = 0.5) -> bool:
@@ -172,35 +195,38 @@ def run_backend():
     return proc
 
 
-def run_frontend(use_winforms: bool = False):
-    """Launch Frontend Presentation (WPF or WinForms)."""
-    proj = FRONTEND_WINFORMS_PROJ if use_winforms else FRONTEND_PROJ
-    ui_type = "Windows Forms" if use_winforms else "WPF"
-    log(f"Step 5/5: Starting Frontend ({ui_type} UI)...")
+def run_frontend():
+    """Launch Frontend Presentation (WinForms)."""
+    log("Step 5/5: Starting Frontend (WinForms UI)...")
     creationflags = subprocess.CREATE_NEW_CONSOLE
     proc = subprocess.Popen(
         [
             "dotnet", "run",
-            "--project", str(proj),
+            "--project", str(FRONTEND_PROJ),
             "--no-build",
             "--no-restore"
         ],
         cwd=str(ROOT_DIR),
         creationflags=creationflags
     )
-    print(f"       -> {ui_type} window launched.", flush=True)
+    print("       -> WinForms window launched.", flush=True)
     return proc
 
 
 def main():
     parser = argparse.ArgumentParser(description="EducationCenterSystem Runner")
+    parser.add_argument("--fast", "-f", action="store_true", help="Fast run: build and run Backend & Frontend only (skips tests)")
     parser.add_argument("--clean", "-c", action="store_true", help="Force clean compilation artifacts (bin, obj, publish)")
-    parser.add_argument("--build", "-b", action="store_true", help="Force rebuild the solution")
-    parser.add_argument("--winforms", "-w", action="store_true", help="Launch WinForms frontend instead of WPF")
+    parser.add_argument("--build", "-b", action="store_true", help="Force rebuild projects")
+    parser.add_argument("--winforms", "-w", action="store_true", help="Launch WinForms frontend (default)")
+    parser.add_argument("mode", nargs="?", choices=["fast", "full"], help="Optional positional mode: 'fast' or 'full'")
     args = parser.parse_args()
 
+    is_fast = args.fast or (args.mode == "fast")
+
     print("=" * 60)
-    print("   EducationCenterSystem - Dev Run Pipeline")
+    mode_text = "Fast Mode (Backend + Frontend, No Tests)" if is_fast else "Full Mode"
+    print(f"   EducationCenterSystem - Dev Run Pipeline [{mode_text}]")
     print("=" * 60)
     
     stop_old_processes()
@@ -210,17 +236,14 @@ def main():
     else:
         log("Step 2/5: Cleaning compilation artifacts (bin, obj)... [SKIPPED]")
 
-    target_frontend_bin = FRONTEND_WINFORMS_BIN if args.winforms else FRONTEND_BIN
-    binaries_missing = not (API_BIN.exists() and target_frontend_bin.exists())
-    if args.build or binaries_missing:
-        if binaries_missing and not args.build:
-            log("Binaries missing. Triggering required build...")
-        build_solution()
+    binaries_missing = not (API_BIN.exists() and FRONTEND_BIN.exists())
+    if args.build or binaries_missing or is_fast:
+        build_projects(fast=is_fast)
     else:
         log("Step 3/5: Compiling solution (dotnet build)... [SKIPPED]")
 
     run_backend()
-    run_frontend(use_winforms=args.winforms)
+    run_frontend()
     
     log("Pipeline finished: Backend & Frontend are running.")
 

@@ -17,6 +17,14 @@ public class StudentsView : UserControl
     private readonly AppButton _btnRefresh;
     private readonly Label _statusLabel;
 
+    private int _currentPage = 1;
+    private int _totalPages = 1;
+    private AppButton _btnNext = null!;
+    private AppButton _btnPrev = null!;
+    private AppButton _btnGoTo = null!;
+    private Label _lblPageInfo = null!;
+    private TextBox _txtGoToPage = null!;
+
     public StudentsView(IHttpClientFactory httpClientFactory, IDialogService dialogService)
     {
         _httpClient = httpClientFactory.CreateClient();
@@ -27,40 +35,56 @@ public class StudentsView : UserControl
         RightToLeft = RightToLeft.Yes;
 
         // Top Header & Action Bar
-        var topPanel = new Panel
+        var topPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
             Height = 85,
             BackColor = AppTheme.SurfaceCard,
-            Padding = new Padding(16, 12, 16, 12)
+            Padding = new Padding(16, 12, 16, 12),
+            ColumnCount = 2,
+            RowCount = 1,
+            RightToLeft = RightToLeft.Yes
         };
+        topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        topPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
+        var titleContainer = new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent };
         var titleLabel = new Label
         {
             Text = "إدارة الطلاب",
             Font = AppTheme.FontHero,
             ForeColor = AppTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(16, 10)
+            Location = new Point(0, 0)
         };
-
         var subtitleLabel = new Label
         {
             Text = "عرض بيانات الطلاب المسجلين والبحث وتعديل الحسابات",
             Font = AppTheme.FontCaption,
             ForeColor = AppTheme.TextSecondary,
             AutoSize = true,
-            Location = new Point(16, 46)
+            Location = new Point(0, 36)
+        };
+        titleContainer.Controls.Add(titleLabel);
+        titleContainer.Controls.Add(subtitleLabel);
+
+        var actionContainer = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Fill,
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            BackColor = Color.Transparent,
+            Padding = new Padding(0, 10, 0, 0),
+            AutoSize = true
         };
 
         _btnAddStudent = new AppButton
         {
             Text = "+ إضافة طالب",
             Variant = ButtonVariant.Primary,
-            Width = 130,
-            Height = 36,
-            Anchor = AnchorStyles.Top | AnchorStyles.Left,
-            Location = new Point(16, 24)
+            Width = 140,
+            Height = 40,
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnAddStudent.Click += (s, e) => OpenAddStudentDialog();
 
@@ -68,47 +92,54 @@ public class StudentsView : UserControl
         {
             Text = "تحديث",
             Variant = ButtonVariant.Secondary,
-            Width = 90,
-            Height = 36,
-            Anchor = AnchorStyles.Top | AnchorStyles.Left,
-            Location = new Point(155, 24)
+            Width = 100,
+            Height = 40,
+            Margin = new Padding(0)
         };
-        _btnRefresh.Click += async (s, e) => await LoadStudentsAsync();
+        _btnRefresh.Click += async (s, e) => { _currentPage = 1; await LoadStudentsAsync(); };
 
-        topPanel.Controls.Add(titleLabel);
-        topPanel.Controls.Add(subtitleLabel);
-        topPanel.Controls.Add(_btnAddStudent);
-        topPanel.Controls.Add(_btnRefresh);
+        actionContainer.Controls.Add(_btnAddStudent);
+        actionContainer.Controls.Add(_btnRefresh);
+
+        topPanel.Controls.Add(titleContainer, 0, 0);
+        topPanel.Controls.Add(actionContainer, 1, 0);
 
         // Search Bar Panel
-        var searchPanel = new Panel
+        var searchPanel = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 55,
+            Height = 70,
             BackColor = AppTheme.BackgroundDark,
-            Padding = new Padding(16, 10, 16, 10)
+            Padding = new Padding(16, 16, 16, 16),
+            ColumnCount = 4,
+            RowCount = 1,
+            RightToLeft = RightToLeft.Yes
         };
+        searchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 300f));
+        searchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110f));
+        searchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        searchPanel.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
 
         _searchBox = new TextBox
         {
-            Width = 260,
-            Height = 32,
+            Width = 290,
             Font = AppTheme.FontBody,
             BackColor = AppTheme.SurfaceCard,
             ForeColor = AppTheme.TextPrimary,
             BorderStyle = BorderStyle.FixedSingle,
-            Location = new Point(16, 12)
+            Anchor = AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top,
+            Margin = new Padding(0, 4, 10, 0)
         };
 
         _btnSearch = new AppButton
         {
             Text = "بحث",
             Variant = ButtonVariant.Secondary,
-            Width = 80,
-            Height = 32,
-            Location = new Point(285, 11)
+            Width = 90,
+            Height = 34,
+            Margin = new Padding(0)
         };
-        _btnSearch.Click += async (s, e) => await LoadStudentsAsync(_searchBox.Text);
+        _btnSearch.Click += async (s, e) => { _currentPage = 1; await LoadStudentsAsync(_searchBox.Text); };
 
         _statusLabel = new Label
         {
@@ -116,12 +147,14 @@ public class StudentsView : UserControl
             ForeColor = AppTheme.TextMuted,
             Font = AppTheme.FontCaption,
             AutoSize = true,
-            Location = new Point(380, 18)
+            Anchor = AnchorStyles.Right | AnchorStyles.Top,
+            Margin = new Padding(0, 8, 0, 0)
         };
 
-        searchPanel.Controls.Add(_searchBox);
-        searchPanel.Controls.Add(_btnSearch);
-        searchPanel.Controls.Add(_statusLabel);
+        searchPanel.Controls.Add(_searchBox, 0, 0);
+        searchPanel.Controls.Add(_btnSearch, 1, 0);
+        searchPanel.Controls.Add(new Panel { Dock = DockStyle.Fill, BackColor = Color.Transparent }, 2, 0);
+        searchPanel.Controls.Add(_statusLabel, 3, 0);
 
         // Grid
         _grid = new DataGridView
@@ -139,6 +172,14 @@ public class StudentsView : UserControl
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             EnableHeadersVisualStyles = false
         };
+        
+        // Enable Double Buffering to eliminate scrolling lag
+        typeof(DataGridView).InvokeMember(
+            "DoubleBuffered",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.SetProperty,
+            null,
+            _grid,
+            new object[] { true });
 
         _grid.ColumnHeadersDefaultCellStyle.BackColor = AppTheme.SurfaceCard;
         _grid.ColumnHeadersDefaultCellStyle.ForeColor = AppTheme.TextSecondary;
@@ -154,7 +195,44 @@ public class StudentsView : UserControl
 
         ConfigureColumns();
 
+        var paginationPanel = new FlowLayoutPanel
+        {
+            Dock = DockStyle.Bottom,
+            Height = 60,
+            BackColor = AppTheme.SurfaceCard,
+            FlowDirection = FlowDirection.LeftToRight, // Starts from Right physically under RightToLeft.Yes
+            WrapContents = false,
+            Padding = new Padding(16, 10, 16, 10)
+        };
+        
+        _btnPrev = new AppButton { Text = "< السابق", Width = 90, Height = 34, Variant = ButtonVariant.Secondary };
+        _lblPageInfo = new Label { Text = "صفحة 1 من 1", Font = AppTheme.FontBodyBold, ForeColor = AppTheme.TextPrimary, AutoSize = true, Margin = new Padding(10, 8, 10, 0) };
+        _btnNext = new AppButton { Text = "التالي >", Width = 90, Height = 34, Variant = ButtonVariant.Secondary };
+        
+        var lblGoTo = new Label { Text = "انتقال إلى صفحة:", Font = AppTheme.FontBody, ForeColor = AppTheme.TextSecondary, AutoSize = true, Margin = new Padding(30, 8, 10, 0) };
+        _txtGoToPage = new TextBox { Width = 50, Font = AppTheme.FontBody, BackColor = AppTheme.BackgroundDark, ForeColor = AppTheme.TextPrimary, BorderStyle = BorderStyle.FixedSingle, TextAlign = HorizontalAlignment.Center, Margin = new Padding(0, 5, 0, 0) };
+        _btnGoTo = new AppButton { Text = "انتقال", Width = 80, Height = 34, Variant = ButtonVariant.Primary, Margin = new Padding(10, 0, 0, 0) };
+
+        _btnPrev.Click += async (s, e) => { if (_currentPage > 1) { _currentPage--; await LoadStudentsAsync(_searchBox.Text); } };
+        _btnNext.Click += async (s, e) => { if (_currentPage < _totalPages) { _currentPage++; await LoadStudentsAsync(_searchBox.Text); } };
+        _btnGoTo.Click += async (s, e) => 
+        {
+            if (int.TryParse(_txtGoToPage.Text, out int page) && page >= 1 && page <= _totalPages)
+            {
+                _currentPage = page;
+                await LoadStudentsAsync(_searchBox.Text);
+            }
+        };
+
+        paginationPanel.Controls.Add(_btnPrev);
+        paginationPanel.Controls.Add(_lblPageInfo);
+        paginationPanel.Controls.Add(_btnNext);
+        paginationPanel.Controls.Add(lblGoTo);
+        paginationPanel.Controls.Add(_txtGoToPage);
+        paginationPanel.Controls.Add(_btnGoTo);
+
         Controls.Add(_grid);
+        Controls.Add(paginationPanel);
         Controls.Add(searchPanel);
         Controls.Add(topPanel);
 
@@ -179,8 +257,8 @@ public class StudentsView : UserControl
         {
             _statusLabel.Text = "جاري التحميل...";
             var url = string.IsNullOrWhiteSpace(query) 
-                ? "api/students?page=1&pageSize=50" 
-                : $"api/students?page=1&pageSize=50&searchTerm={Uri.EscapeDataString(query)}";
+                ? $"api/students?page={_currentPage}&pageSize=20" 
+                : $"api/students?page={_currentPage}&pageSize=20&searchTerm={Uri.EscapeDataString(query)}";
 
             var response = await _httpClient.GetAsync(url);
             if (response.IsSuccessStatusCode)
@@ -203,6 +281,11 @@ public class StudentsView : UserControl
                             StatusText = s.Status == 0 ? "نشط" : "غير نشط"
                         });
                     }
+                    _totalPages = paged.TotalPages;
+                    _currentPage = paged.PageNumber;
+                    _lblPageInfo.Text = $"صفحة {_currentPage} من {Math.Max(1, _totalPages)}";
+                    _btnPrev.Enabled = _currentPage > 1;
+                    _btnNext.Enabled = _currentPage < _totalPages;
                 }
                 _grid.DataSource = list;
                 _statusLabel.Text = $"تم تحميل {list.Count} طالب";

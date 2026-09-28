@@ -8,9 +8,9 @@ namespace EducationCenterSystem.Api;
 
 public static class SeedDataExtensions
 {
-    public static async Task SeedDataAsync(this WebApplication app)
+    public static async Task SeedDataAsync(IServiceProvider services)
     {
-        using var scope = app.Services.CreateScope();
+        using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         int currentCount = await dbContext.Students.CountAsync();
@@ -109,7 +109,7 @@ public static class SeedDataExtensions
             if (adminRole is not null)
             {
                 var emailResult = Email.Create("admin@educationcenter.com");
-                string passwordHash = passwordHasher.Hash("Admin123456!");
+                string passwordHash = passwordHasher.Hash(app.Configuration["AdminPassword"] ?? "Admin123456!");
 
                 var adminUserResult = User.Create(
                     "System",

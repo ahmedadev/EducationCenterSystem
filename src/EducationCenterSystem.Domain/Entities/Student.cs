@@ -104,6 +104,9 @@ public sealed class Student : AggregateRoot
         if (string.IsNullOrWhiteSpace(studentCode))
             return Error.Validation("Student.StudentCode", "Student code cannot be empty.");
 
+        if (dateOfBirth > DateTime.UtcNow)
+            return Error.Validation("Student.DateOfBirth", "Date of birth cannot be in the future.");
+
         var student = new Student(
             Guid.NewGuid(),
             firstName,
@@ -170,6 +173,9 @@ public sealed class Student : AggregateRoot
 
         if (string.IsNullOrWhiteSpace(studentCode))
             return Error.Validation("Student.StudentCode", "Student code cannot be empty.");
+
+        if (dateOfBirth > DateTime.UtcNow)
+            return Error.Validation("Student.DateOfBirth", "Date of birth cannot be in the future.");
 
         if (email is null)
             return Error.Validation("Student.Email", "Email cannot be null.");

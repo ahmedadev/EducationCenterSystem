@@ -83,6 +83,33 @@ public sealed class StudentTests
     }
 
     [Fact]
+    public void Register_ShouldReturnValidationError_WhenDateOfBirthIsInFuture()
+    {
+        // Arrange
+        var futureDob = DateTime.UtcNow.AddDays(1);
+
+        // Act
+        var result = Student.Register(
+            "أحمد",
+            "علاء",
+            _validEmail,
+            _validPhone,
+            futureDob,
+            "30801011234567",
+            _validParentPhone,
+            "الصف الأول الثانوي",
+            "STU-0001",
+            null,
+            Gender.Male,
+            null,
+            null);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("Student.DateOfBirth");
+    }
+
+    [Fact]
     public void Register_ShouldReturnValidationError_WhenStudentCodeIsEmpty()
     {
         // Arrange
@@ -107,6 +134,38 @@ public sealed class StudentTests
         // Assert
         result.IsError.Should().BeTrue();
         result.FirstError.Code.Should().Be("Student.StudentCode");
+    }
+
+    [Fact]
+    public void UpdateContactInfo_ShouldReturnValidationError_WhenEmailIsNull()
+    {
+        // Arrange
+        var student = Student.Register(
+            "أحمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "30801011234567", _validParentPhone, "الصف الأول الثانوي", "STU-0001", null, Gender.Male, null, null).Value;
+
+        // Act
+        var result = student.UpdateContactInfo(null!, _validPhone, _validParentPhone, null);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("Student.Email");
+    }
+
+    [Fact]
+    public void UpdateContactInfo_ShouldReturnValidationError_WhenPhoneIsNull()
+    {
+        // Arrange
+        var student = Student.Register(
+            "أحمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "30801011234567", _validParentPhone, "الصف الأول الثانوي", "STU-0001", null, Gender.Male, null, null).Value;
+
+        // Act
+        var result = student.UpdateContactInfo(_validEmail, null!, _validParentPhone, null);
+
+        // Assert
+        result.IsError.Should().BeTrue();
+        result.FirstError.Code.Should().Be("Student.PhoneNumber");
     }
 
     [Fact]

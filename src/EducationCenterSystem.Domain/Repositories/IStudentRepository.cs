@@ -9,7 +9,7 @@ public interface IStudentRepository
     Task<Student?> GetByNationalIdAsync(string nationalId, CancellationToken cancellationToken = default);
     Task<Student?> GetByStudentCodeAsync(string studentCode, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Student>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<(IReadOnlyList<Student> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<Student> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Student>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
     Task<bool> IsEmailUniqueAsync(ValueObjects.Email email, CancellationToken cancellationToken = default);
     void Update(Student student);

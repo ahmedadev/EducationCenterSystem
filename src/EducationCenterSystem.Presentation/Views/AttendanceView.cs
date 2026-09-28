@@ -31,7 +31,7 @@ public class AttendanceView : UserControl
         var topPanel = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 70,
+            Height = 85,
             BackColor = AppTheme.SurfaceCard,
             Padding = new Padding(16, 12, 16, 12)
         };
@@ -42,18 +42,21 @@ public class AttendanceView : UserControl
             Font = AppTheme.FontHero,
             ForeColor = AppTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(16, 10)
+            Location = new Point(0, 12)
         };
 
         topPanel.Controls.Add(titleLabel);
 
         // Filter / Controls Toolbar
-        var filterPanel = new Panel
+        var filterPanel = new FlowLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 65,
+            Height = 75,
             BackColor = AppTheme.BackgroundDark,
-            Padding = new Padding(16, 12, 16, 12)
+            Padding = new Padding(16, 16, 16, 16),
+            FlowDirection = FlowDirection.RightToLeft,
+            WrapContents = false,
+            AutoScroll = true
         };
 
         var lblGroup = new Label
@@ -62,18 +65,18 @@ public class AttendanceView : UserControl
             Font = AppTheme.FontBodyBold,
             ForeColor = AppTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(16, 20)
+            Margin = new Padding(0, 6, 10, 0)
         };
 
         _cboGroups = new ComboBox
         {
-            Width = 220,
+            Width = 200,
             Height = 32,
             Font = AppTheme.FontBody,
             BackColor = AppTheme.SurfaceCard,
             ForeColor = AppTheme.TextPrimary,
             DropDownStyle = ComboBoxStyle.DropDownList,
-            Location = new Point(90, 16)
+            Margin = new Padding(0, 0, 15, 0)
         };
 
         var lblDate = new Label
@@ -82,25 +85,25 @@ public class AttendanceView : UserControl
             Font = AppTheme.FontBodyBold,
             ForeColor = AppTheme.TextPrimary,
             AutoSize = true,
-            Location = new Point(325, 20)
+            Margin = new Padding(0, 6, 10, 0)
         };
 
         _dtpDate = new DateTimePicker
         {
-            Width = 150,
+            Width = 140,
             Height = 32,
             Font = AppTheme.FontBody,
             Format = DateTimePickerFormat.Short,
-            Location = new Point(415, 16)
+            Margin = new Padding(0, 0, 15, 0)
         };
 
         _btnLoadStudents = new AppButton
         {
             Text = "عرض الطلاب",
             Variant = ButtonVariant.Secondary,
-            Width = 110,
-            Height = 32,
-            Location = new Point(580, 14)
+            Width = 100,
+            Height = 34,
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnLoadStudents.Click += async (s, e) => await LoadSessionStudentsAsync();
 
@@ -108,9 +111,9 @@ public class AttendanceView : UserControl
         {
             Text = "تحضير الكل",
             Variant = ButtonVariant.Success,
-            Width = 100,
-            Height = 32,
-            Location = new Point(700, 14)
+            Width = 90,
+            Height = 34,
+            Margin = new Padding(0, 0, 10, 0)
         };
         _btnMarkAllPresent.Click += (s, e) => MarkAll(0); // 0 = Present
 
@@ -118,9 +121,9 @@ public class AttendanceView : UserControl
         {
             Text = "حفظ الحضور",
             Variant = ButtonVariant.Primary,
-            Width = 110,
-            Height = 32,
-            Location = new Point(810, 14)
+            Width = 100,
+            Height = 34,
+            Margin = new Padding(0, 0, 15, 0)
         };
         _btnSaveAttendance.Click += async (s, e) => await SaveAttendanceAsync();
 
@@ -130,7 +133,7 @@ public class AttendanceView : UserControl
             ForeColor = AppTheme.TextMuted,
             Font = AppTheme.FontCaption,
             AutoSize = true,
-            Location = new Point(935, 22)
+            Margin = new Padding(0, 8, 0, 0)
         };
 
         filterPanel.Controls.Add(lblGroup);

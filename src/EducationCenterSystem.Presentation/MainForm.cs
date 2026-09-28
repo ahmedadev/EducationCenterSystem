@@ -31,19 +31,24 @@ public class MainForm : Form
         RightToLeftLayout = true;
 
         // Top Navigation & Header Bar
-        var topBar = new Panel
+        var topBar = new TableLayoutPanel
         {
             Dock = DockStyle.Top,
-            Height = 70,
+            Height = 80,
             BackColor = AppTheme.SurfaceCard,
-            Padding = new Padding(16, 12, 16, 12)
+            Padding = new Padding(16, 12, 16, 12),
+            ColumnCount = 3,
+            RowCount = 1,
+            RightToLeft = RightToLeft.Yes
         };
+        topBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260f));
+        topBar.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100f));
+        topBar.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 260f));
 
         // System Logo / Title
         var titlePanel = new Panel
         {
-            Dock = DockStyle.Right,
-            Width = 240,
+            Dock = DockStyle.Fill,
             BackColor = Color.Transparent
         };
 
@@ -52,7 +57,7 @@ public class MainForm : Form
             Text = "منصة الإدارة التعليمية",
             Font = AppTheme.FontSubtitle,
             ForeColor = AppTheme.TextPrimary,
-            Location = new Point(0, 10),
+            Location = new Point(0, 4),
             AutoSize = true
         };
 
@@ -61,18 +66,17 @@ public class MainForm : Form
             Text = "Education Center System",
             Font = AppTheme.FontCaption,
             ForeColor = AppTheme.AccentPrimary,
-            Location = new Point(0, 36),
+            Location = new Point(0, 32),
             AutoSize = true
         };
 
         titlePanel.Controls.Add(appTitle);
         titlePanel.Controls.Add(appSub);
 
-        // User Chip & Status (Left Side in RTL)
+        // User Chip & Status
         var userPanel = new Panel
         {
-            Dock = DockStyle.Left,
-            Width = 260,
+            Dock = DockStyle.Fill,
             BackColor = Color.Transparent
         };
 
@@ -81,7 +85,7 @@ public class MainForm : Form
             Text = "مدير النظام",
             Font = AppTheme.FontBodyBold,
             ForeColor = AppTheme.TextPrimary,
-            Location = new Point(10, 12),
+            Location = new Point(0, 4),
             AutoSize = true
         };
 
@@ -90,12 +94,36 @@ public class MainForm : Form
             Text = "● متصل بالسيرفر",
             Font = AppTheme.FontCaption,
             ForeColor = AppTheme.StatusSuccess,
-            Location = new Point(10, 36),
+            Location = new Point(0, 32),
             AutoSize = true
+        };
+
+        var themeToggle = new AppButton
+        {
+            Text = "فاتح ☀️",
+            Variant = ButtonVariant.Secondary,
+            Width = 90,
+            Height = 32,
+            Location = new Point(160, 12)
+        };
+        themeToggle.Click += (s, e) => 
+        {
+            AppTheme.SetTheme(!AppTheme.IsDarkMode);
+            themeToggle.Text = AppTheme.IsDarkMode ? "فاتح ☀️" : "داكن 🌙";
+            
+            BackColor = AppTheme.BackgroundDark;
+            topBar.BackColor = AppTheme.SurfaceCard;
+            _contentPanel.BackColor = AppTheme.BackgroundDark;
+            appTitle.ForeColor = AppTheme.TextPrimary;
+            _userNameLabel.ForeColor = AppTheme.TextPrimary;
+            
+            foreach (Control ctrl in _navTabsPanel.Controls) ctrl.Invalidate();
+            _activeNavButton?.PerformClick();
         };
 
         userPanel.Controls.Add(_userNameLabel);
         userPanel.Controls.Add(_statusBadge);
+        userPanel.Controls.Add(themeToggle);
 
         // Navigation Tabs in Center
         _navTabsPanel = new FlowLayoutPanel
@@ -103,8 +131,8 @@ public class MainForm : Form
             Dock = DockStyle.Fill,
             BackColor = Color.Transparent,
             WrapContents = false,
-            FlowDirection = FlowDirection.RightToLeft,
-            Padding = new Padding(10, 8, 10, 8)
+            FlowDirection = FlowDirection.LeftToRight, // Under RightToLeft=Yes, LeftToRight physically starts from the Right edge
+            Padding = new Padding(10, 4, 10, 4)
         };
 
         CreateNavTab("الطلاب", () => _serviceProvider.GetRequiredService<StudentsView>(), true);
@@ -113,12 +141,12 @@ public class MainForm : Form
         CreateNavTab("الحضور والغياب", () => _serviceProvider.GetRequiredService<AttendanceView>());
         CreateNavTab("لوحة الإدارة", () => _serviceProvider.GetRequiredService<AdminDashboardView>());
 
-        topBar.Controls.Add(_navTabsPanel);
-        topBar.Controls.Add(titlePanel);
-        topBar.Controls.Add(userPanel);
+        topBar.Controls.Add(titlePanel, 0, 0);
+        topBar.Controls.Add(_navTabsPanel, 1, 0);
+        topBar.Controls.Add(userPanel, 2, 0);
 
         // Main Content View Container
-        _contentPanel = new Panel
+        _contentPanel = new BufferedPanel
         {
             Dock = DockStyle.Fill,
             BackColor = AppTheme.BackgroundDark
@@ -172,10 +200,18 @@ public class MainForm : Form
     private void ShowView(UserControl view)
     {
         _contentPanel.SuspendLayout();
+        
+        // Dispose old views to free resources and prevent UI ghosting
+        foreach (Control ctrl in _contentPanel.Controls)
+        {
+            ctrl.Dispose();
+        }
+        
         _contentPanel.Controls.Clear();
         view.Dock = DockStyle.Fill;
         _contentPanel.Controls.Add(view);
         _contentPanel.ResumeLayout();
+        _contentPanel.Invalidate(); // Force a clean repaint
     }
 
     private async Task AuthenticateDefaultAdminAsync()
@@ -214,6 +250,16 @@ public class MainForm : Form
         {
             _statusBadge.Text = "● الخادم غير متاح";
             _statusBadge.ForeColor = AppTheme.StatusDanger;
+        }
+    }
+
+    // Specialized panel to prevent flickering and paint remnants during navigation
+    private class BufferedPanel : Panel
+    {
+        public BufferedPanel()
+        {
+            DoubleBuffered = true;
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
         }
     }
 }

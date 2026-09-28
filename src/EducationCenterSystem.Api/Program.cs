@@ -49,19 +49,26 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddProblemDetails();
 
 // CORS
+var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
+    options.AddPolicy("DefaultCorsPolicy", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
 // Configure JWT Authentication
 var jwtSettings = builder.Configuration.GetSection("Jwt");
-var secret = jwtSettings["Secret"] ?? "EducationCenterSystem_Super_Secret_Key_For_Jwt_Signing_2026_MustBeLongEnough!";
+var secret = jwtSettings["Secret"];
+
+if (string.IsNullOrEmpty(secret) || secret == "YOUR_JWT_SECRET_HERE")
+{
+    throw new InvalidOperationException("JWT Secret is missing. Please set it in environment variables or user-secrets.");
+}
 
 builder.Services.AddAuthentication(options =>
 {
@@ -104,6 +111,10 @@ builder.Services.AddRateLimiter(options =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Health Checks
+builder.Services.AddHealthChecks()
+    .AddNpgSql(builder.Configuration.GetConnectionString("DefaultConnection")!);
+
 var app = builder.Build();
 
 app.UseSerilogRequestLogging();
@@ -116,7 +127,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("DefaultCorsPolicy");
 
 // Pre-warm database connection, Npgsql type catalog, and EF Core query cache
 await app.WarmUpDatabaseAsync();
@@ -131,6 +142,7 @@ app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapHealthChecks("/health");
 app.MapControllers().RequireRateLimiting("fixed");
 
 app.Run();

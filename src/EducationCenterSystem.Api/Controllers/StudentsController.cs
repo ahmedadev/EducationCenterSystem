@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Api.Authentication;
+using EducationCenterSystem.Api.Authentication;
 using EducationCenterSystem.Application.Students.Register;
 using EducationCenterSystem.Domain.Entities;
 using MediatR;
@@ -35,9 +35,10 @@ public sealed class StudentsController : ApiController
     public async Task<IActionResult> GetPaged(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 15,
+        [FromQuery] string? searchTerm = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new Application.Students.GetPaged.GetPagedQuery(page, pageSize);
+        var query = new Application.Students.GetPaged.GetPagedQuery(page, pageSize, searchTerm);
         var result = await _sender.Send(query, cancellationToken);
 
         if (result.IsError)
