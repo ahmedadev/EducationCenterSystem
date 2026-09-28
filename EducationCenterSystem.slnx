@@ -1,0 +1,13 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EducationCenterSystem.Application/EducationCenterSystem.Application.csproj" />
+    <Project Path="src/EducationCenterSystem.Domain/EducationCenterSystem.Domain.csproj" />
+    <Project Path="src/EducationCenterSystem.Infrastructure/EducationCenterSystem.Infrastructure.csproj" />
+    <Project Path="src/EducationCenterSystem.Api/EducationCenterSystem.Api.csproj" />
+    <Project Path="src/EducationCenterSystem.Presentation/EducationCenterSystem.Presentation.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/EducationCenterSystem.Architecture.Tests/EducationCenterSystem.Architecture.Tests.csproj" />
+    <Project Path="tests/EducationCenterSystem.Domain.UnitTests/EducationCenterSystem.Domain.UnitTests.csproj" />
+  </Folder>
+</Solution>

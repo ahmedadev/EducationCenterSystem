@@ -1,0 +1,15 @@
+{
+    "files.exclude": {
+        "**/bin": true,
+        "**/obj": true
+    },
+    "files.autoSave": "onFocusChange",
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "always"
+    },
+    "[csharp]": {
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        }
+    }
+}
