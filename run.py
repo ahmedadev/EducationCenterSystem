@@ -21,8 +21,10 @@ ROOT_DIR = Path(__file__).resolve().parent
 SLN_FILE = ROOT_DIR / "EducationCenterSystem.sln"
 API_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Api" / "EducationCenterSystem.Api.csproj"
 FRONTEND_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "EducationCenterSystem.Presentation.csproj"
+FRONTEND_WINFORMS_PROJ = ROOT_DIR / "src" / "EducationCenterSystem.Presentation.WinForms" / "EducationCenterSystem.Presentation.WinForms.csproj"
 API_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Api" / "bin" / "Debug" / "net9.0" / "EducationCenterSystem.Api.dll"
 FRONTEND_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Presentation" / "bin" / "Debug" / "net9.0-windows" / "EducationCenterSystem.Presentation.dll"
+FRONTEND_WINFORMS_BIN = ROOT_DIR / "src" / "EducationCenterSystem.Presentation.WinForms" / "bin" / "Debug" / "net9.0-windows" / "EducationCenterSystem.Presentation.WinForms.dll"
 
 API_PORT = 5145
 API_HEALTH_URL = f"http://127.0.0.1:{API_PORT}/swagger/index.html"
@@ -169,21 +171,23 @@ def run_backend():
     return proc
 
 
-def run_frontend():
-    """Launch Frontend Presentation (WPF)."""
-    log("Step 5/5: Starting Frontend (WPF UI)...")
+def run_frontend(use_winforms: bool = False):
+    """Launch Frontend Presentation (WPF or WinForms)."""
+    proj = FRONTEND_WINFORMS_PROJ if use_winforms else FRONTEND_PROJ
+    ui_type = "Windows Forms" if use_winforms else "WPF"
+    log(f"Step 5/5: Starting Frontend ({ui_type} UI)...")
     creationflags = subprocess.CREATE_NEW_CONSOLE
     proc = subprocess.Popen(
         [
             "dotnet", "run",
-            "--project", str(FRONTEND_PROJ),
+            "--project", str(proj),
             "--no-build",
             "--no-restore"
         ],
         cwd=str(ROOT_DIR),
         creationflags=creationflags
     )
-    print("       -> Frontend window launched.", flush=True)
+    print(f"       -> {ui_type} window launched.", flush=True)
     return proc
 
 
@@ -191,6 +195,7 @@ def main():
     parser = argparse.ArgumentParser(description="EducationCenterSystem Runner")
     parser.add_argument("--clean", "-c", action="store_true", help="Force clean compilation artifacts (bin, obj, publish)")
     parser.add_argument("--build", "-b", action="store_true", help="Force rebuild the solution")
+    parser.add_argument("--winforms", "-w", action="store_true", help="Launch WinForms frontend instead of WPF")
     args = parser.parse_args()
 
     print("=" * 60)
@@ -204,7 +209,8 @@ def main():
     else:
         log("Step 2/5: Cleaning compilation artifacts (bin, obj)... [SKIPPED]")
 
-    binaries_missing = not (API_BIN.exists() and FRONTEND_BIN.exists())
+    target_frontend_bin = FRONTEND_WINFORMS_BIN if args.winforms else FRONTEND_BIN
+    binaries_missing = not (API_BIN.exists() and target_frontend_bin.exists())
     if args.build or binaries_missing:
         if binaries_missing and not args.build:
             log("Binaries missing. Triggering required build...")
@@ -213,7 +219,7 @@ def main():
         log("Step 3/5: Compiling solution (dotnet build)... [SKIPPED]")
 
     run_backend()
-    run_frontend()
+    run_frontend(use_winforms=args.winforms)
     
     log("Pipeline finished: Backend & Frontend are running.")
 
