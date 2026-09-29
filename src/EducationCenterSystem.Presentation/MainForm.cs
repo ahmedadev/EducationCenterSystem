@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using Microsoft.Extensions.DependencyInjection;
 using EducationCenterSystem.Presentation.WinForms.Components;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
@@ -102,9 +101,9 @@ public class MainForm : Form
         {
             Text = "فاتح ☀️",
             Variant = ButtonVariant.Secondary,
-            Width = 90,
+            Width = 80,
             Height = 32,
-            Location = new Point(160, 12)
+            Location = new Point(175, 12)
         };
         themeToggle.Click += (s, e) => 
         {
@@ -113,17 +112,36 @@ public class MainForm : Form
             
             BackColor = AppTheme.BackgroundDark;
             topBar.BackColor = AppTheme.SurfaceCard;
-            _contentPanel.BackColor = AppTheme.BackgroundDark;
+            if (_contentPanel != null) _contentPanel.BackColor = AppTheme.BackgroundDark;
             appTitle.ForeColor = AppTheme.TextPrimary;
-            _userNameLabel.ForeColor = AppTheme.TextPrimary;
+            if (_userNameLabel != null) _userNameLabel.ForeColor = AppTheme.TextPrimary;
             
-            foreach (Control ctrl in _navTabsPanel.Controls) ctrl.Invalidate();
+            if (_navTabsPanel != null)
+            {
+                foreach (Control ctrl in _navTabsPanel.Controls) ctrl.Invalidate();
+            }
             _activeNavButton?.PerformClick();
+        };
+
+        var logoutBtn = new AppButton
+        {
+            Text = "خروج 🚪",
+            Variant = ButtonVariant.Danger,
+            Width = 80,
+            Height = 32,
+            Location = new Point(85, 12)
+        };
+        logoutBtn.Click += (s, e) =>
+        {
+            _tokenProvider.Clear();
+            topBar.Visible = false;
+            ShowLoginScreen(topBar);
         };
 
         userPanel.Controls.Add(_userNameLabel);
         userPanel.Controls.Add(_statusBadge);
         userPanel.Controls.Add(themeToggle);
+        userPanel.Controls.Add(logoutBtn);
 
         // Navigation Tabs in Center
         _navTabsPanel = new FlowLayoutPanel
@@ -252,44 +270,6 @@ public class MainForm : Form
         _contentPanel.Invalidate(); // Force a clean repaint
     }
 
-    private async Task AuthenticateDefaultAdminAsync()
-    {
-        try
-        {
-            var httpClientFactory = _serviceProvider.GetRequiredService<IHttpClientFactory>();
-            var client = httpClientFactory.CreateClient();
-
-            var loginResponse = await client.PostAsJsonAsync("api/auth/login", new
-            {
-                email = "admin@educationcenter.com",
-                password = "Admin123456!"
-            });
-
-            if (loginResponse.IsSuccessStatusCode)
-            {
-                var authResult = await loginResponse.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
-                string token = authResult.TryGetProperty("token", out var tProp) ? (tProp.GetString() ?? string.Empty) : string.Empty;
-                string firstName = authResult.TryGetProperty("firstName", out var fnProp) ? (fnProp.GetString() ?? string.Empty) : string.Empty;
-                string lastName = authResult.TryGetProperty("lastName", out var lnProp) ? (lnProp.GetString() ?? string.Empty) : string.Empty;
-                string email = authResult.TryGetProperty("email", out var emProp) ? (emProp.GetString() ?? string.Empty) : string.Empty;
-
-                _tokenProvider.SetAuthentication(token, $"{firstName} {lastName}".Trim(), email, new List<string> { "Admin" }, new List<string>());
-                _userNameLabel.Text = _tokenProvider.CurrentUserName;
-                _statusBadge.Text = "● متصل كمسؤول";
-                _statusBadge.ForeColor = AppTheme.StatusSuccess;
-            }
-            else
-            {
-                _statusBadge.Text = "● وضع عدم الاتصال";
-                _statusBadge.ForeColor = AppTheme.StatusWarning;
-            }
-        }
-        catch
-        {
-            _statusBadge.Text = "● الخادم غير متاح";
-            _statusBadge.ForeColor = AppTheme.StatusDanger;
-        }
-    }
 
     // Specialized panel to prevent flickering and paint remnants during navigation
     private class BufferedPanel : Panel

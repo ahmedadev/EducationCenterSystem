@@ -1,4 +1,5 @@
 using System.Net.Http.Json;
+using System.Linq;
 using EducationCenterSystem.Presentation.WinForms.Components;
 using EducationCenterSystem.Presentation.WinForms.Models.DTOs;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
@@ -10,6 +11,8 @@ public class CoursesAndGroupsView : UserControl
 {
     private readonly HttpClient _httpClient;
     private readonly IDialogService _dialogService;
+    private readonly ITeacherApiService _teacherApiService;
+
     private readonly DataGridView _gridCourses;
     private readonly DataGridView _gridGroups;
     private readonly FormField _txtCourseName;
@@ -18,10 +21,19 @@ public class CoursesAndGroupsView : UserControl
     private readonly AppButton _btnSaveCourse;
     private readonly AppButton _btnRefresh;
 
-    public CoursesAndGroupsView(IHttpClientFactory httpClientFactory, IDialogService dialogService)
+    private readonly ComboBox _cmbCourses;
+    private readonly ComboBox _cmbTeachers;
+    private readonly FormField _txtGroupName;
+    private readonly FormField _txtMaxCapacity;
+    private readonly FormField _txtMonthlyFee;
+    private readonly FormField _txtSchedule;
+    private readonly AppButton _btnSaveGroup;
+
+    public CoursesAndGroupsView(IHttpClientFactory httpClientFactory, IDialogService dialogService, ITeacherApiService teacherApiService)
     {
         _httpClient = httpClientFactory.CreateClient();
         _dialogService = dialogService;
+        _teacherApiService = teacherApiService;
 
         Dock = DockStyle.Fill;
         BackColor = AppTheme.BackgroundDark;
@@ -77,7 +89,7 @@ public class CoursesAndGroupsView : UserControl
         topPanel.Controls.Add(titleContainer, 0, 0);
         topPanel.Controls.Add(actionContainer, 1, 0);
 
-        // Main Layout (Split: Right is Course Form, Left is Tables)
+        // Main Layout (Split: Right is Forms, Left is Tables)
         var split = new SplitContainer
         {
             Dock = DockStyle.Fill,
@@ -87,41 +99,68 @@ public class CoursesAndGroupsView : UserControl
             FixedPanel = FixedPanel.Panel1
         };
 
-        // Panel 1: Add Course Panel
+        // Panel 1: Forms Panel
         var pnlForm = new Panel
         {
             Dock = DockStyle.Fill,
             BackColor = AppTheme.SurfaceCard,
-            Padding = new Padding(16)
+            Padding = new Padding(16),
+            AutoScroll = true
         };
 
-        var formTitle = new Label
-        {
-            Text = "إضافة مادة / كورس جديد",
-            Font = AppTheme.FontTitle,
-            ForeColor = AppTheme.TextPrimary,
-            Dock = DockStyle.Top,
-            Height = 35
-        };
+        // --- ADD GROUP SECTION ---
+        var pnlGroupForm = new Panel { Dock = DockStyle.Top, Height = 480, Padding = new Padding(0, 20, 0, 0) };
+        var groupTitle = new Label { Text = "إضافة مجموعة تعليمية جديدة", Font = AppTheme.FontTitle, ForeColor = AppTheme.TextPrimary, Dock = DockStyle.Top, Height = 35 };
+
+        var pnlCmbCourse = new Panel { Dock = DockStyle.Top, Height = 65, BackColor = Color.Transparent };
+        var lblCourse = new Label { Text = "الكورس المرتبط *", Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption, TextAlign = ContentAlignment.MiddleRight };
+        _cmbCourses = new ComboBox { Dock = DockStyle.Bottom, Height = 32, DropDownStyle = ComboBoxStyle.DropDownList, BackColor = AppTheme.SurfaceCard, ForeColor = AppTheme.TextPrimary, Font = AppTheme.FontBody };
+        pnlCmbCourse.Controls.Add(_cmbCourses);
+        pnlCmbCourse.Controls.Add(lblCourse);
+
+        var pnlCmbTeacher = new Panel { Dock = DockStyle.Top, Height = 65, BackColor = Color.Transparent };
+        var lblTeacher = new Label { Text = "معلم المجموعة *", Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption, TextAlign = ContentAlignment.MiddleRight };
+        _cmbTeachers = new ComboBox { Dock = DockStyle.Bottom, Height = 32, DropDownStyle = ComboBoxStyle.DropDownList, BackColor = AppTheme.SurfaceCard, ForeColor = AppTheme.TextPrimary, Font = AppTheme.FontBody };
+        pnlCmbTeacher.Controls.Add(_cmbTeachers);
+        pnlCmbTeacher.Controls.Add(lblTeacher);
+
+        _txtGroupName = new FormField { LabelText = "اسم المجموعة (مثال: السبت والثلاثاء 5م) *", Dock = DockStyle.Top };
+        _txtMaxCapacity = new FormField { LabelText = "الحد الأقصى للطلاب *", Dock = DockStyle.Top };
+        _txtMonthlyFee = new FormField { LabelText = "الاشتراك الشهري *", Dock = DockStyle.Top };
+        _txtSchedule = new FormField { LabelText = "مواعيد الحضور", Dock = DockStyle.Top };
+        
+        _btnSaveGroup = new AppButton { Text = "حفظ المجموعة", Variant = ButtonVariant.Primary, Dock = DockStyle.Top, Height = 40 };
+        _btnSaveGroup.Click += async (s, e) => await SaveGroupAsync();
+
+        pnlGroupForm.Controls.Add(_btnSaveGroup);
+        pnlGroupForm.Controls.Add(_txtSchedule);
+        pnlGroupForm.Controls.Add(_txtMonthlyFee);
+        pnlGroupForm.Controls.Add(_txtMaxCapacity);
+        pnlGroupForm.Controls.Add(_txtGroupName);
+        pnlGroupForm.Controls.Add(pnlCmbTeacher);
+        pnlGroupForm.Controls.Add(pnlCmbCourse);
+        pnlGroupForm.Controls.Add(groupTitle);
+
+        // --- ADD COURSE SECTION ---
+        var pnlCourseForm = new Panel { Dock = DockStyle.Top, Height = 280, Padding = new Padding(0, 0, 0, 20) };
+        var formTitle = new Label { Text = "إضافة مادة / كورس جديد", Font = AppTheme.FontTitle, ForeColor = AppTheme.TextPrimary, Dock = DockStyle.Top, Height = 35 };
 
         _txtCourseName = new FormField { LabelText = "اسم المادة / الكورس *", Dock = DockStyle.Top };
         _txtGradeLevel = new FormField { LabelText = "الصف الدراسي *", Dock = DockStyle.Top };
         _txtSubject = new FormField { LabelText = "المادة العلمية *", Dock = DockStyle.Top };
 
-        _btnSaveCourse = new AppButton
-        {
-            Text = "حفظ الكورس",
-            Variant = ButtonVariant.Primary,
-            Dock = DockStyle.Top,
-            Height = 40
-        };
+        _btnSaveCourse = new AppButton { Text = "حفظ الكورس", Variant = ButtonVariant.Primary, Dock = DockStyle.Top, Height = 40 };
         _btnSaveCourse.Click += async (s, e) => await SaveCourseAsync();
 
-        pnlForm.Controls.Add(_btnSaveCourse);
-        pnlForm.Controls.Add(_txtSubject);
-        pnlForm.Controls.Add(_txtGradeLevel);
-        pnlForm.Controls.Add(_txtCourseName);
-        pnlForm.Controls.Add(formTitle);
+        pnlCourseForm.Controls.Add(_btnSaveCourse);
+        pnlCourseForm.Controls.Add(_txtSubject);
+        pnlCourseForm.Controls.Add(_txtGradeLevel);
+        pnlCourseForm.Controls.Add(_txtCourseName);
+        pnlCourseForm.Controls.Add(formTitle);
+
+        pnlForm.Controls.Add(pnlGroupForm);
+        pnlForm.Controls.Add(pnlCourseForm); 
+
         split.Panel1.Controls.Add(pnlForm);
 
         // Panel 2: Grids for Courses and Groups
@@ -248,6 +287,55 @@ public class CoursesAndGroupsView : UserControl
         }
     }
 
+    private async Task SaveGroupAsync()
+    {
+        if (string.IsNullOrWhiteSpace(_txtGroupName.Value) || _cmbCourses.SelectedValue == null || _cmbTeachers.SelectedValue == null)
+        {
+            _dialogService.ShowError("الرجاء إدخال اسم المجموعة واختيار الكورس والمعلم", "تنبيه");
+            return;
+        }
+
+        if (!int.TryParse(_txtMaxCapacity.Value, out int maxCapacity) || !decimal.TryParse(_txtMonthlyFee.Value, out decimal monthlyFee))
+        {
+            _dialogService.ShowError("الرجاء إدخال أرقام صحيحة للسعة والاشتراك", "تنبيه");
+            return;
+        }
+
+        try
+        {
+            var payload = new
+            {
+                courseId = (Guid)_cmbCourses.SelectedValue,
+                teacherId = (Guid)_cmbTeachers.SelectedValue,
+                name = _txtGroupName.Value.Trim(),
+                maxCapacity = maxCapacity,
+                monthlyFee = monthlyFee,
+                scheduleDescription = _txtSchedule.Value.Trim(),
+                status = 0
+            };
+
+            var res = await _httpClient.PostAsJsonAsync("api/educational-groups", payload);
+            if (res.IsSuccessStatusCode)
+            {
+                _dialogService.ShowInfo("تم إنشاء المجموعة التعليمية بنجاح", "نجاح");
+                _txtGroupName.Value = string.Empty;
+                _txtMaxCapacity.Value = string.Empty;
+                _txtMonthlyFee.Value = string.Empty;
+                _txtSchedule.Value = string.Empty;
+                await LoadDataAsync();
+            }
+            else
+            {
+                var err = await res.Content.ReadAsStringAsync();
+                _dialogService.ShowError($"فشل الحفظ: {err}", "خطأ");
+            }
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowError($"خطأ في الاتصال: {ex.Message}", "خطأ");
+        }
+    }
+
     private async Task LoadDataAsync()
     {
         try
@@ -256,8 +344,20 @@ public class CoursesAndGroupsView : UserControl
             if (coursesRes.IsSuccessStatusCode)
             {
                 var courses = await coursesRes.Content.ReadFromJsonAsync<List<CourseDto>>();
-                _gridCourses.DataSource = courses ?? new List<CourseDto>();
+                if (courses != null)
+                {
+                    _gridCourses.DataSource = courses;
+                    _cmbCourses.DataSource = courses.ToList();
+                    _cmbCourses.DisplayMember = "Name";
+                    _cmbCourses.ValueMember = "Id";
+                }
             }
+
+            var teachers = await _teacherApiService.GetAllTeachersAsync();
+            var teacherItems = teachers.Select(t => new { t.Id, FullName = $"{t.FirstName} {t.LastName}".Trim() }).ToList();
+            _cmbTeachers.DataSource = teacherItems;
+            _cmbTeachers.DisplayMember = "FullName";
+            _cmbTeachers.ValueMember = "Id";
 
             var groupsRes = await _httpClient.GetAsync("api/educational-groups");
             if (groupsRes.IsSuccessStatusCode)

@@ -8,12 +8,14 @@ namespace EducationCenterSystem.Presentation.WinForms.Views;
 
 public class StudentsView : UserControl
 {
-    private readonly HttpClient _httpClient;
+    private readonly IStudentApiService _studentApiService;
     private readonly IDialogService _dialogService;
+    private readonly HttpClient _httpClient;
     private readonly DataGridView _grid;
     private readonly TextBox _searchBox;
     private readonly AppButton _btnSearch;
     private readonly AppButton _btnAddStudent;
+    private readonly AppButton _btnEnrollGroup;
     private readonly AppButton _btnRefresh;
     private readonly Label _statusLabel;
 
@@ -25,10 +27,11 @@ public class StudentsView : UserControl
     private Label _lblPageInfo = null!;
     private TextBox _txtGoToPage = null!;
 
-    public StudentsView(IHttpClientFactory httpClientFactory, IDialogService dialogService)
+    public StudentsView(IStudentApiService studentApiService, IDialogService dialogService, IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _studentApiService = studentApiService;
         _dialogService = dialogService;
+        _httpClient = httpClientFactory.CreateClient();
 
         Dock = DockStyle.Fill;
         BackColor = AppTheme.BackgroundDark;
@@ -88,6 +91,16 @@ public class StudentsView : UserControl
         };
         _btnAddStudent.Click += (s, e) => OpenAddStudentDialog();
 
+        _btnEnrollGroup = new AppButton
+        {
+            Text = "+ تسجيل في مجموعة",
+            Variant = ButtonVariant.Secondary,
+            Width = 160,
+            Height = 40,
+            Margin = new Padding(0, 0, 10, 0)
+        };
+        _btnEnrollGroup.Click += async (s, e) => await OpenEnrollStudentDialogAsync();
+
         _btnRefresh = new AppButton
         {
             Text = "تحديث",
@@ -99,6 +112,7 @@ public class StudentsView : UserControl
         _btnRefresh.Click += async (s, e) => { _currentPage = 1; await LoadStudentsAsync(); };
 
         actionContainer.Controls.Add(_btnAddStudent);
+        actionContainer.Controls.Add(_btnEnrollGroup);
         actionContainer.Controls.Add(_btnRefresh);
 
         topPanel.Controls.Add(titleContainer, 0, 0);
@@ -241,10 +255,12 @@ public class StudentsView : UserControl
 
     private void ConfigureColumns()
     {
+        _grid.AutoGenerateColumns = false;
         _grid.Columns.Clear();
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", DataPropertyName = "Id", Visible = false });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "#", DataPropertyName = "SerialNumber", FillWeight = 20 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "كود الطالب", DataPropertyName = "StudentCode", FillWeight = 40 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الاسم الكامل", DataPropertyName = "FullName", FillWeight = 70 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الاسم الكامل", Name = "FullName", DataPropertyName = "FullName", FillWeight = 70 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الهاتف", DataPropertyName = "PhoneNumber", FillWeight = 50 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "هاتف ولي الأمر", DataPropertyName = "ParentPhoneNumber", FillWeight = 50 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الصف الدراسي", DataPropertyName = "GradeLevel", FillWeight = 50 });
@@ -256,14 +272,10 @@ public class StudentsView : UserControl
         try
         {
             _statusLabel.Text = "جاري التحميل...";
-            var url = string.IsNullOrWhiteSpace(query) 
-                ? $"api/students?page={_currentPage}&pageSize=20" 
-                : $"api/students?page={_currentPage}&pageSize=20&searchTerm={Uri.EscapeDataString(query)}";
-
-            var response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
+            var paged = await _studentApiService.GetPagedStudentsAsync(_currentPage, 20, query);
+            
+            if (paged != null)
             {
-                var paged = await response.Content.ReadFromJsonAsync<PagedResultModel<StudentModel>>();
                 var list = new List<object>();
                 if (paged?.Items != null)
                 {
@@ -272,6 +284,7 @@ public class StudentsView : UserControl
                     {
                         list.Add(new
                         {
+                            s.Id,
                             SerialNumber = index++,
                             s.StudentCode,
                             FullName = $"{s.FirstName} {s.LastName}",
@@ -339,21 +352,21 @@ public class StudentsView : UserControl
                 return;
             }
 
-            var payload = new
+            var payload = new StudentModel
             {
-                firstName = firstNameField.Value.Trim(),
-                lastName = lastNameField.Value.Trim(),
-                phoneNumber = phoneField.Value.Trim(),
-                parentPhoneNumber = parentPhoneField.Value.Trim(),
-                gradeLevel = gradeField.Value.Trim(),
-                dateOfBirth = DateTime.UtcNow.AddYears(-15),
-                gender = 1
+                FirstName = firstNameField.Value.Trim(),
+                LastName = lastNameField.Value.Trim(),
+                PhoneNumber = phoneField.Value.Trim(),
+                ParentPhoneNumber = parentPhoneField.Value.Trim(),
+                GradeLevel = gradeField.Value.Trim(),
+                DateOfBirth = DateTime.UtcNow.AddYears(-15),
+                Gender = EducationCenterSystem.Presentation.WinForms.Models.Enums.Gender.Male
             };
 
             try
             {
-                var res = await _httpClient.PostAsJsonAsync("api/students", payload);
-                if (res.IsSuccessStatusCode)
+                var success = await _studentApiService.CreateStudentAsync(payload);
+                if (success)
                 {
                     _dialogService.ShowInfo("تم تسجيل الطالب بنجاح", "نجاح");
                     form.Close();
@@ -361,8 +374,7 @@ public class StudentsView : UserControl
                 }
                 else
                 {
-                    var err = await res.Content.ReadAsStringAsync();
-                    _dialogService.ShowError($"فشل التسجيل: {err}", "خطأ");
+                    _dialogService.ShowError("فشل التسجيل، يرجى مراجعة البيانات أو الخادم.", "خطأ");
                 }
             }
             catch (Exception ex)
@@ -380,6 +392,110 @@ public class StudentsView : UserControl
         container.Controls.Add(btnSave);
 
         form.Controls.Add(container);
+        form.ShowDialog(this);
+    }
+
+    private async Task OpenEnrollStudentDialogAsync()
+    {
+        if (_grid.SelectedRows.Count == 0)
+        {
+            _dialogService.ShowError("الرجاء تحديد طالب من القائمة أولاً", "تنبيه");
+            return;
+        }
+
+        var selectedRow = _grid.SelectedRows[0];
+        var studentId = (Guid)selectedRow.Cells["Id"].Value;
+        var studentName = selectedRow.Cells["FullName"].Value?.ToString() ?? "الطالب";
+
+        // Fetch groups
+        List<EducationCenterSystem.Presentation.WinForms.Models.DTOs.EducationalGroupDto>? groups = null;
+        try
+        {
+            var res = await _httpClient.GetAsync("api/educational-groups");
+            if (res.IsSuccessStatusCode)
+            {
+                groups = await res.Content.ReadFromJsonAsync<List<EducationCenterSystem.Presentation.WinForms.Models.DTOs.EducationalGroupDto>>();
+            }
+        }
+        catch(Exception ex)
+        {
+            _dialogService.ShowError($"خطأ أثناء الاتصال: {ex.Message}", "خطأ");
+            return;
+        }
+
+        if (groups == null || groups.Count == 0)
+        {
+            _dialogService.ShowInfo("لا يوجد مجموعات متاحة للتسجيل.", "معلومة");
+            return;
+        }
+
+        using var form = new Form
+        {
+            Text = $"تسجيل الطالب: {studentName}",
+            Size = new Size(400, 250),
+            StartPosition = FormStartPosition.CenterParent,
+            BackColor = AppTheme.BackgroundDark,
+            ForeColor = AppTheme.TextPrimary,
+            RightToLeft = RightToLeft.Yes,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false
+        };
+
+        var pnlContainer = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
+        var lblGroup = new Label { Text = "اختر المجموعة:", Dock = DockStyle.Top, Height = 25, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption };
+        var cmbGroups = new ComboBox
+        {
+            Dock = DockStyle.Top,
+            Height = 35,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            DataSource = groups,
+            DisplayMember = "Name",
+            ValueMember = "Id",
+            BackColor = AppTheme.SurfaceCard,
+            ForeColor = AppTheme.TextPrimary,
+            Font = AppTheme.FontBody
+        };
+
+        var btnSave = new AppButton
+        {
+            Text = "حفظ وإضافة للمجموعة",
+            Variant = ButtonVariant.Primary,
+            Dock = DockStyle.Bottom,
+            Height = 40
+        };
+
+        btnSave.Click += async (s, e) =>
+        {
+            if (cmbGroups.SelectedValue == null) return;
+            var groupId = (Guid)cmbGroups.SelectedValue;
+            
+            try
+            {
+                var payload = new { StudentId = studentId };
+                var response = await _httpClient.PostAsJsonAsync($"api/educational-groups/{groupId}/students", payload);
+                if (response.IsSuccessStatusCode)
+                {
+                    _dialogService.ShowInfo("تم التسجيل بنجاح!", "نجاح");
+                    form.Close();
+                }
+                else
+                {
+                    var err = await response.Content.ReadAsStringAsync();
+                    _dialogService.ShowError($"فشل التسجيل: {err}", "خطأ");
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowError($"خطأ أثناء الاتصال: {ex.Message}", "خطأ");
+            }
+        };
+
+        pnlContainer.Controls.Add(cmbGroups);
+        pnlContainer.Controls.Add(lblGroup);
+        pnlContainer.Controls.Add(btnSave);
+
+        form.Controls.Add(pnlContainer);
         form.ShowDialog(this);
     }
 }

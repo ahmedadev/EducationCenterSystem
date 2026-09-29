@@ -1,3 +1,11 @@
+using Moq;
+using FluentAssertions;
+using EducationCenterSystem.Domain.Entities;
+using EducationCenterSystem.Domain.Enums;
+using EducationCenterSystem.Domain.ValueObjects;
+using EducationCenterSystem.Domain.Repositories;
+using EducationCenterSystem.Application.Students.UpdateProfile;
+
 namespace EducationCenterSystem.Application.UnitTests.Students;
 
 public sealed class UpdateProfileCommandHandlerTests

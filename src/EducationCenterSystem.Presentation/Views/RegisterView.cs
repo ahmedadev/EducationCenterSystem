@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using EducationCenterSystem.Presentation.WinForms.Components;
+using EducationCenterSystem.Presentation.WinForms.Models.DTOs.Auth;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
 using EducationCenterSystem.Presentation.WinForms.Theme;
 
@@ -7,7 +7,7 @@ namespace EducationCenterSystem.Presentation.WinForms.Views;
 
 public class RegisterView : UserControl
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthApiService _authApiService;
     private readonly IDialogService _dialogService;
     private readonly IServiceProvider _serviceProvider;
 
@@ -23,9 +23,9 @@ public class RegisterView : UserControl
     private readonly AppButton _btnBack;
     private readonly Label _errorLabel;
 
-    public RegisterView(IHttpClientFactory httpClientFactory, IDialogService dialogService, IServiceProvider serviceProvider)
+    public RegisterView(IAuthApiService authApiService, IDialogService dialogService, IServiceProvider serviceProvider)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _authApiService = authApiService;
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
 
@@ -141,26 +141,23 @@ public class RegisterView : UserControl
 
         try
         {
-            var payload = new
+            var success = await _authApiService.RegisterAsync(new RegisterRequest
             {
-                firstName = fn,
-                lastName = ln,
-                email = email,
-                password = password,
-                phoneNumber = phone,
-                roleId = (Guid?)null // Wait, does the API need a valid RoleId? By default maybe it works, or we need to pass a default role. We will test.
-            };
+                FirstName = fn,
+                LastName = ln,
+                Email = email,
+                Password = password,
+                PhoneNumber = phone,
+                RoleId = null
+            });
 
-            var res = await _httpClient.PostAsJsonAsync("api/auth/register", payload);
-
-            if (res.IsSuccessStatusCode)
+            if (success)
             {
                 _dialogService.ShowInfo("تم إنشاء الحساب بنجاح! يمكنك الآن تسجيل الدخول.", "نجاح");
                 BackToLoginRequested?.Invoke(this, EventArgs.Empty);
             }
             else
             {
-                var error = await res.Content.ReadAsStringAsync();
                 _errorLabel.Text = "حدث خطأ أثناء التسجيل. ربما البريد مستخدم؟";
             }
         }

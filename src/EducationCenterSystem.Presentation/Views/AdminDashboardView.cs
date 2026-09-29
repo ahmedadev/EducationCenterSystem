@@ -1,6 +1,7 @@
 using System.Net.Http.Json;
 using EducationCenterSystem.Presentation.WinForms.Components;
 using EducationCenterSystem.Presentation.WinForms.Models;
+using EducationCenterSystem.Presentation.WinForms.Models.DTOs.Auth;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
 using EducationCenterSystem.Presentation.WinForms.Theme;
 
@@ -10,6 +11,8 @@ public class AdminDashboardView : UserControl
 {
     private readonly HttpClient _httpClient;
     private readonly IDialogService _dialogService;
+    private readonly IAuthApiService _authApiService;
+    
     private readonly StatCard _cardUsers;
     private readonly StatCard _cardActiveUsers;
     private readonly StatCard _cardRoles;
@@ -18,10 +21,11 @@ public class AdminDashboardView : UserControl
     private readonly AppButton _btnAddUser;
     private readonly AppButton _btnRefresh;
 
-    public AdminDashboardView(IHttpClientFactory httpClientFactory, IDialogService dialogService)
+    public AdminDashboardView(IHttpClientFactory httpClientFactory, IDialogService dialogService, IAuthApiService authApiService)
     {
         _httpClient = httpClientFactory.CreateClient();
         _dialogService = dialogService;
+        _authApiService = authApiService;
 
         Dock = DockStyle.Fill;
         BackColor = AppTheme.BackgroundDark;
@@ -70,7 +74,7 @@ public class AdminDashboardView : UserControl
             Height = 40,
             Margin = new Padding(0, 0, 10, 0)
         };
-        _btnAddUser.Click += (s, e) => OpenAddUserDialog();
+        _btnAddUser.Click += async (s, e) => await OpenAddUserDialogAsync();
 
         _btnRefresh = new AppButton
         {
@@ -196,12 +200,23 @@ public class AdminDashboardView : UserControl
         }
     }
 
-    private void OpenAddUserDialog()
+    private async Task OpenAddUserDialogAsync()
     {
+        List<RoleModel>? rolesList = null;
+        try
+        {
+            var res = await _httpClient.GetAsync("api/roles");
+            if (res.IsSuccessStatusCode)
+            {
+                rolesList = await res.Content.ReadFromJsonAsync<List<RoleModel>>();
+            }
+        }
+        catch { }
+
         using var form = new Form
         {
             Text = "إضافة مستخدم جديد",
-            Size = new Size(420, 420),
+            Size = new Size(420, 520),
             StartPosition = FormStartPosition.CenterParent,
             BackColor = AppTheme.BackgroundDark,
             ForeColor = AppTheme.TextPrimary,
@@ -214,7 +229,27 @@ public class AdminDashboardView : UserControl
         var firstName = new FormField { LabelText = "الاسم الأول *", Dock = DockStyle.Top };
         var lastName = new FormField { LabelText = "الاسم الأخير *", Dock = DockStyle.Top };
         var email = new FormField { LabelText = "البريد الإلكتروني *", Dock = DockStyle.Top };
+        var phoneNumber = new FormField { LabelText = "رقم الهاتف", Dock = DockStyle.Top };
         var password = new FormField { LabelText = "كلمة المرور *", IsPassword = true, Dock = DockStyle.Top };
+
+        var pnlRole = new Panel { Dock = DockStyle.Top, Height = 65, BackColor = Color.Transparent };
+        var lblRole = new Label { Text = "الدور (الصلاحيات) *", Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption, TextAlign = ContentAlignment.MiddleRight };
+        var cmbRoles = new ComboBox { Dock = DockStyle.Bottom, Height = 32, DropDownStyle = ComboBoxStyle.DropDownList, BackColor = AppTheme.SurfaceCard, ForeColor = AppTheme.TextPrimary, Font = AppTheme.FontBody };
+        pnlRole.Controls.Add(cmbRoles);
+        pnlRole.Controls.Add(lblRole);
+
+        if (rolesList != null && rolesList.Count > 0)
+        {
+            cmbRoles.DataSource = rolesList;
+            cmbRoles.DisplayMember = "Name";
+            cmbRoles.ValueMember = "Id";
+        }
+        else
+        {
+            cmbRoles.Items.Add("لا توجد أدوار متوفرة");
+            cmbRoles.SelectedIndex = 0;
+            cmbRoles.Enabled = false;
+        }
 
         var btnSave = new AppButton
         {
@@ -232,27 +267,30 @@ public class AdminDashboardView : UserControl
                 return;
             }
 
-            var payload = new
+            var request = new RegisterRequest
             {
-                firstName = firstName.Value.Trim(),
-                lastName = lastName.Value.Trim(),
-                email = email.Value.Trim(),
-                password = password.Value.Trim()
+                FirstName = firstName.Value.Trim(),
+                LastName = lastName.Value.Trim(),
+                Email = email.Value.Trim(),
+                Password = password.Value.Trim(),
+                PhoneNumber = phoneNumber.Value.Trim(),
+                RoleId = cmbRoles.SelectedValue as Guid?
             };
 
             try
             {
-                var res = await _httpClient.PostAsJsonAsync("api/auth/register", payload);
-                if (res.IsSuccessStatusCode)
+                // Use IAuthApiService for registering users like Clean Architecture specifies
+                var result = await _authApiService.RegisterAsync(request);
+                
+                if (result)
                 {
-                    _dialogService.ShowInfo("تم إنشاء المستخدم بنجاح", "نجاح");
+                    _dialogService.ShowInfo("تم إنشاء المستخدم وتعيين الصلاحيات بنجاح", "نجاح");
                     form.Close();
                     await LoadDashboardDataAsync();
                 }
                 else
                 {
-                    var err = await res.Content.ReadAsStringAsync();
-                    _dialogService.ShowError($"فشل الإنشاء: {err}", "خطأ");
+                    _dialogService.ShowError("فشل الإنشاء: يرجى التحقق من البيانات والمحاولة مرة أخرى", "خطأ");
                 }
             }
             catch (Exception ex)
@@ -261,14 +299,18 @@ public class AdminDashboardView : UserControl
             }
         };
 
-        var container = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
+        var container = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20), AutoScroll = true };
+        
+        container.Controls.Add(pnlRole);
         container.Controls.Add(password);
+        container.Controls.Add(phoneNumber);
         container.Controls.Add(email);
         container.Controls.Add(lastName);
         container.Controls.Add(firstName);
-        container.Controls.Add(btnSave);
 
         form.Controls.Add(container);
+        form.Controls.Add(btnSave); // Ensure it stays at the bottom
+        
         form.ShowDialog(this);
     }
 }

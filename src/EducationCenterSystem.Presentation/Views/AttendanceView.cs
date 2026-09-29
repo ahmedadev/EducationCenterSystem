@@ -272,21 +272,66 @@ public class AttendanceView : UserControl
 
     private async Task SaveAttendanceAsync()
     {
-        if (_grid.Rows.Count == 0)
+        if (_grid.Rows.Count == 0 || _cboGroups.SelectedValue == null)
         {
-            _dialogService.ShowError("لا توجد بيانات حضور لحفظها", "تنبيه");
+            _dialogService.ShowError("الرجاء اختيار مجموعة وعرض الطلاب أولاً", "تنبيه");
             return;
         }
 
         try
         {
             _statusLabel.Text = "جاري حفظ الحضور...";
-            _dialogService.ShowInfo("تم حفظ سجل الحضور والغياب بنجاح", "نجاح");
-            _statusLabel.Text = "تم الحفظ بنجاح";
+            
+            var groupId = (Guid)_cboGroups.SelectedValue;
+            var sessionDate = _dtpDate.Value.Date;
+            
+            var attendanceList = new List<object>();
+            foreach (DataGridViewRow row in _grid.Rows)
+            {
+                if (row.Tag is Guid studentId)
+                {
+                    var statusText = row.Cells["Status"].Value?.ToString();
+                    int statusEnum = statusText switch {
+                        "حاضر" => 1,
+                        "غائب" => 2,
+                        "متأخر" => 3,
+                        "معذور" => 4,
+                        _ => 1
+                    };
+                    var notes = row.Cells["Notes"].Value?.ToString() ?? "";
+
+                    attendanceList.Add(new {
+                        studentId,
+                        status = statusEnum,
+                        notes
+                    });
+                }
+            }
+
+            var payload = new {
+                groupId,
+                sessionDate,
+                records = attendanceList
+            };
+
+            var res = await _httpClient.PostAsJsonAsync("api/attendance/batch", payload);
+            
+            if (res.IsSuccessStatusCode)
+            {
+                _dialogService.ShowInfo("تم حفظ سجل الحضور والغياب بنجاح", "نجاح");
+                _statusLabel.Text = "تم الحفظ بنجاح";
+            }
+            else
+            {
+                var err = await res.Content.ReadAsStringAsync();
+                _dialogService.ShowError($"فشل الحفظ: {err}", "خطأ");
+                _statusLabel.Text = "فشل الحفظ";
+            }
         }
         catch (Exception ex)
         {
             _dialogService.ShowError($"فشل الحفظ: {ex.Message}", "خطأ");
+            _statusLabel.Text = "فشل الحفظ";
         }
     }
 }

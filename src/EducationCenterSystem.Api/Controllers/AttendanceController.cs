@@ -1,7 +1,8 @@
-﻿using EducationCenterSystem.Application.Attendance.Create;
+using EducationCenterSystem.Application.Attendance.Create;
 using EducationCenterSystem.Application.Attendance.Record;
 using EducationCenterSystem.Application.Attendance.GetBySessionId;
 using EducationCenterSystem.Application.Attendance.GetByGroupId;
+using EducationCenterSystem.Application.Attendance.BatchRecord;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -55,6 +56,16 @@ public sealed class AttendanceController : ApiController
         var result = await _mediator.Send(command, cancellationToken);
         return result.Match(
             recordId => Ok(new { Id = recordId }),
+            Problem);
+    }
+
+    [HttpPost("batch")]
+    [Authorize]
+    public async Task<IActionResult> BatchRecordAttendance(BatchRecordCommand command, CancellationToken cancellationToken)
+    {
+        var result = await _mediator.Send(command, cancellationToken);
+        return result.Match(
+            success => Ok(),
             Problem);
     }
 }

@@ -16,4 +16,5 @@ public interface IEducationalGroupRepository
     // Enrollment methods could be here or in a separate repository
     void AddEnrollment(StudentGroup studentGroup);
     Task<bool> IsStudentEnrolledAsync(Guid studentId, Guid groupId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Student>> GetStudentsByGroupIdAsync(Guid groupId, CancellationToken cancellationToken = default);
 }

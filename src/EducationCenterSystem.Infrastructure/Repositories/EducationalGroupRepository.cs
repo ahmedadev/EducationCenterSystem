@@ -76,4 +76,15 @@ public sealed class EducationalGroupRepository : IEducationalGroupRepository
         return await _dbContext.StudentGroups
             .AnyAsync(sg => sg.StudentId == studentId && sg.EducationalGroupId == groupId, cancellationToken);
     }
+
+    public async Task<IEnumerable<Student>> GetStudentsByGroupIdAsync(Guid groupId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.StudentGroups
+            .Where(sg => sg.EducationalGroupId == groupId && sg.Status == Domain.Enums.EnrollmentStatus.Active)
+            .Include(sg => sg.Student)
+            .Select(sg => sg.Student)
+            .OrderBy(s => s.FirstName)
+            .ThenBy(s => s.LastName)
+            .ToListAsync(cancellationToken);
+    }
 }

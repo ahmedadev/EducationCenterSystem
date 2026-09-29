@@ -26,6 +26,9 @@ static class Program
                 services.AddSingleton<IDialogService, DialogService>();
                 services.AddSingleton<ITokenProvider, TokenProvider>();
                 services.AddTransient<AuthenticatedHttpClientHandler>();
+                services.AddTransient<IAuthApiService, AuthApiService>();
+                services.AddTransient<ITeacherApiService, TeacherApiService>();
+                services.AddTransient<IStudentApiService, StudentApiService>();
 
                 // HTTP Client configuration
                 services.AddHttpClient(string.Empty, client =>

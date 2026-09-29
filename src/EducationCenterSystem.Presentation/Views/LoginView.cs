@@ -1,5 +1,5 @@
-using System.Net.Http.Json;
 using EducationCenterSystem.Presentation.WinForms.Components;
+using EducationCenterSystem.Presentation.WinForms.Models.DTOs.Auth;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
 using EducationCenterSystem.Presentation.WinForms.Theme;
 
@@ -7,7 +7,7 @@ namespace EducationCenterSystem.Presentation.WinForms.Views;
 
 public class LoginView : UserControl
 {
-    private readonly HttpClient _httpClient;
+    private readonly IAuthApiService _authApiService;
     private readonly IDialogService _dialogService;
     private readonly ITokenProvider _tokenProvider;
 
@@ -19,9 +19,9 @@ public class LoginView : UserControl
     private readonly AppButton _btnLogin;
     private readonly Label _errorLabel;
 
-    public LoginView(IHttpClientFactory httpClientFactory, IDialogService dialogService, ITokenProvider tokenProvider)
+    public LoginView(IAuthApiService authApiService, IDialogService dialogService, ITokenProvider tokenProvider)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _authApiService = authApiService;
         _dialogService = dialogService;
         _tokenProvider = tokenProvider;
 
@@ -143,22 +143,16 @@ public class LoginView : UserControl
 
         try
         {
-            var loginResponse = await _httpClient.PostAsJsonAsync("api/auth/login", new
+            var result = await _authApiService.LoginAsync(new LoginRequest
             {
-                email = email,
-                password = password
+                Email = email,
+                Password = password
             });
 
-            if (loginResponse.IsSuccessStatusCode)
+            if (result != null)
             {
-                var authResult = await loginResponse.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>();
-                string token = authResult.TryGetProperty("token", out var tProp) ? (tProp.GetString() ?? string.Empty) : string.Empty;
-                string firstName = authResult.TryGetProperty("firstName", out var fnProp) ? (fnProp.GetString() ?? string.Empty) : string.Empty;
-                string lastName = authResult.TryGetProperty("lastName", out var lnProp) ? (lnProp.GetString() ?? string.Empty) : string.Empty;
-                string emailResult = authResult.TryGetProperty("email", out var emProp) ? (emProp.GetString() ?? string.Empty) : string.Empty;
-
-                string fullName = $"{firstName} {lastName}".Trim();
-                _tokenProvider.SetAuthentication(token, fullName, emailResult, new List<string> { "Admin" }, new List<string>());
+                string fullName = $"{result.FirstName} {result.LastName}".Trim();
+                _tokenProvider.SetAuthentication(result.Token, fullName, result.Email, new List<string> { "Admin" }, new List<string>());
 
                 LoginSuccessful?.Invoke(this, (fullName, "مسؤول"));
             }

@@ -52,7 +52,7 @@ internal sealed class StudentRepository : IStudentRepository
             query = query.Where(s => 
                 EF.Functions.ILike(s.FirstName + " " + s.LastName, likeTerm) ||
                 EF.Functions.ILike(s.StudentCode, likeTerm) ||
-                EF.Functions.ILike(s.NationalId, likeTerm) ||
+                (s.NationalId != null && EF.Functions.ILike(s.NationalId, likeTerm)) ||
                 EF.Functions.ILike(s.PhoneNumber.Value, likeTerm) ||
                 // Add Levenshtein distance for typos on specific words if exact substring fails
                 EF.Functions.FuzzyStringMatchLevenshtein(s.FirstName.ToLower(), term) <= 2 ||

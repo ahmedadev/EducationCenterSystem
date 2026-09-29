@@ -1,4 +1,3 @@
-using System.Net.Http.Json;
 using EducationCenterSystem.Presentation.WinForms.Components;
 using EducationCenterSystem.Presentation.WinForms.Models;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
@@ -8,7 +7,7 @@ namespace EducationCenterSystem.Presentation.WinForms.Views;
 
 public class TeachersView : UserControl
 {
-    private readonly HttpClient _httpClient;
+    private readonly ITeacherApiService _teacherApiService;
     private readonly IDialogService _dialogService;
     private readonly DataGridView _grid;
     private readonly TextBox _searchBox;
@@ -24,9 +23,9 @@ public class TeachersView : UserControl
     private AppButton _btnGoTo = null!;
     private Label _lblPageInfo = null!;
     private TextBox _txtGoToPage = null!;
-    public TeachersView(IHttpClientFactory httpClientFactory, IDialogService dialogService)
+    public TeachersView(ITeacherApiService teacherApiService, IDialogService dialogService)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _teacherApiService = teacherApiService;
         _dialogService = dialogService;
 
         Dock = DockStyle.Fill;
@@ -252,14 +251,10 @@ public class TeachersView : UserControl
         try
         {
             _statusLabel.Text = "جاري التحميل...";
-            var url = string.IsNullOrWhiteSpace(query)
-                ? $"api/teachers?page={_currentPage}&pageSize=20"
-                : $"api/teachers?page={_currentPage}&pageSize=20&searchTerm={Uri.EscapeDataString(query)}";
-
-            var response = await _httpClient.GetAsync(url);
-            if (response.IsSuccessStatusCode)
+            var paged = await _teacherApiService.GetPagedTeachersAsync(_currentPage, 20, query);
+            
+            if (paged != null)
             {
-                var paged = await response.Content.ReadFromJsonAsync<PagedResultModel<TeacherModel>>();
                 var list = new List<object>();
                 if (paged?.Items != null)
                 {
@@ -365,28 +360,28 @@ public class TeachersView : UserControl
                 return;
             }
 
-            var payload = new
+            var payload = new TeacherModel
             {
-                firstName = firstNameField.Value.Trim(),
-                secondName = secondNameField.Value.Trim(),
-                thirdName = thirdNameField.Value.Trim(),
-                lastName = lastNameField.Value.Trim(),
-                email = emailField.Value.Trim(),
-                phoneNumber = phoneField.Value.Trim(),
-                dateOfBirth = dateOfBirthPicker.Value.ToString("yyyy-MM-dd"),
-                nationalId = string.IsNullOrWhiteSpace(nationalIdField.Value) ? null : nationalIdField.Value.Trim(),
-                teacherCode = teacherCodeField.Value.Trim(),
-                subject = specField.Value.Trim(),
-                qualification = string.IsNullOrWhiteSpace(qualField.Value) ? null : qualField.Value.Trim(),
-                gender = genderCombo.SelectedIndex == 0 ? 1 : 2,
-                address = string.IsNullOrWhiteSpace(addressField.Value) ? null : addressField.Value.Trim(),
-                notes = string.IsNullOrWhiteSpace(notesField.Value) ? null : notesField.Value.Trim()
+                FirstName = firstNameField.Value.Trim(),
+                SecondName = secondNameField.Value.Trim(),
+                ThirdName = thirdNameField.Value.Trim(),
+                LastName = lastNameField.Value.Trim(),
+                Email = emailField.Value.Trim(),
+                PhoneNumber = phoneField.Value.Trim(),
+                DateOfBirth = dateOfBirthPicker.Value,
+                NationalId = string.IsNullOrWhiteSpace(nationalIdField.Value) ? null : nationalIdField.Value.Trim(),
+                TeacherCode = teacherCodeField.Value.Trim(),
+                Subject = specField.Value.Trim(),
+                Qualification = string.IsNullOrWhiteSpace(qualField.Value) ? null : qualField.Value.Trim(),
+                Gender = genderCombo.SelectedIndex == 0 ? EducationCenterSystem.Presentation.WinForms.Models.Enums.Gender.Male : EducationCenterSystem.Presentation.WinForms.Models.Enums.Gender.Female,
+                Address = string.IsNullOrWhiteSpace(addressField.Value) ? null : addressField.Value.Trim(),
+                Notes = string.IsNullOrWhiteSpace(notesField.Value) ? null : notesField.Value.Trim()
             };
 
             try
             {
-                var res = await _httpClient.PostAsJsonAsync("api/teachers", payload);
-                if (res.IsSuccessStatusCode)
+                var success = await _teacherApiService.CreateTeacherAsync(payload);
+                if (success)
                 {
                     _dialogService.ShowInfo("تم تسجيل المعلم بنجاح", "نجاح");
                     form.Close();
@@ -394,8 +389,7 @@ public class TeachersView : UserControl
                 }
                 else
                 {
-                    var err = await res.Content.ReadAsStringAsync();
-                    _dialogService.ShowError($"فشل التسجيل: {err}", "خطأ");
+                    _dialogService.ShowError("فشل التسجيل، يرجى مراجعة البيانات أو الخادم.", "خطأ");
                 }
             }
             catch (Exception ex)
