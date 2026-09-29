@@ -36,7 +36,21 @@ public class DevelopmentController : ControllerBase
         }
     }
     
-    // يمكنك إضافة المزيد من الـ endpoints هنا مستقبلاً
-    // [HttpPost("seed-teachers")]
-    // [HttpPost("seed-courses")]
+    [HttpPost("seed-teachers")]
+    public async Task<IActionResult> SeedTeachers([FromQuery] int count = 1000)
+    {
+        if (!_env.IsDevelopment())
+        {
+            return NotFound("This endpoint is only available in Development environment.");
+        }
+        try
+        {
+            await SeedDataExtensions.SeedTeachersDataAsync(_serviceProvider, count);
+            return Ok(new { Message = $"Successfully seeded {count} teachers." });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(500, new { Error = ex.Message });
+        }
+    }
 }

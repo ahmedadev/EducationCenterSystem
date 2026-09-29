@@ -155,12 +155,50 @@ public class MainForm : Form
         Controls.Add(_contentPanel);
         Controls.Add(topBar);
 
-        // Auto authenticate and load initial view
-        Shown += async (s, e) =>
+        topBar.Visible = false;
+
+        Shown += (s, e) =>
         {
-            await AuthenticateDefaultAdminAsync();
-            ShowView(_serviceProvider.GetRequiredService<StudentsView>());
+            ShowLoginScreen(topBar);
         };
+    }
+
+    private void ShowLoginScreen(Control topBar)
+    {
+        var loginView = _serviceProvider.GetRequiredService<LoginView>();
+        loginView.LoginSuccessful += (s, args) =>
+        {
+            topBar.Visible = true;
+            _userNameLabel.Text = args.Name;
+            _statusBadge.Text = $"● متصل كـ {args.Role}";
+            _statusBadge.ForeColor = AppTheme.StatusSuccess;
+            
+            if (_navTabsPanel.Controls.Count > 0 && _navTabsPanel.Controls[0] is AppButton btn)
+            {
+                btn.PerformClick();
+            }
+            else
+            {
+                ShowView(_serviceProvider.GetRequiredService<StudentsView>());
+            }
+        };
+
+        loginView.RegisterRequested += (s, args) =>
+        {
+            ShowRegisterScreen(topBar);
+        };
+
+        ShowView(loginView);
+    }
+
+    private void ShowRegisterScreen(Control topBar)
+    {
+        var registerView = _serviceProvider.GetRequiredService<RegisterView>();
+        registerView.BackToLoginRequested += (s, args) =>
+        {
+            ShowLoginScreen(topBar);
+        };
+        ShowView(registerView);
     }
 
     private void CreateNavTab(string text, Func<UserControl> viewFactory, bool isInitial = false)

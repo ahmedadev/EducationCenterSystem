@@ -97,6 +97,99 @@ public static class SeedDataExtensions
         dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
     }
 
+    public static async Task SeedTeachersDataAsync(IServiceProvider services, int targetCount = 1000)
+    {
+        using var scope = services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        int currentCount = await dbContext.Teachers.CountAsync();
+        if (currentCount >= targetCount)
+        {
+            return;
+        }
+
+        var maleFirstNames = new[] { "أحمد", "محمد", "محمود", "طارق", "هشام", "عصام", "أشرف", "سامح", "مدحت", "شريف", "حازم", "ياسر", "خالد", "عمرو", "إبراهيم" };
+        var femaleFirstNames = new[] { "منى", "ريهام", "هبة", "إيمان", "نهى", "سحر", "عبير", "نادية", "حنان", "وفاء", "أمل", "داليا", "شيماء", "رانيا", "سماح" };
+        var lastNames = new[] { "الشناوي", "عبد الفتاح", "المهدي", "الصاوي", "البيومي", "السعدني", "الجوهري", "المغربي", "الغندور", "النحاس", "الفقي", "الباز", "القاضي", "زهران", "دسوقي" };
+        var subjects = new[] { "اللغة العربية", "اللغة الإنجليزية", "اللغة الفرنسية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا", "الفلسفة والمنطق", "الجيولوجيا", "الحاسب الآلي" };
+        var qualifications = new[] { "بكالوريوس تربية", "ماجستير مناهج وطرق تدريس", "دبلومة تربوية عامة", "بكالوريوس علوم ورياضيات", "ليسانس آداب وتربية", "دكتوراه في المناهج التعليمية" };
+        var addresses = new[] { "القاهرة، المعادي", "الجيزة، المهندسين", "الإسكندرية، لوران", "القليوبية، شبرا الخيمة", "المنصورة، حي الجامعة", "الشرقية، القومية", "الغربية، طنطا" };
+        var notesList = new[] { "معلم أول خبير ومعتمد", "رئيس قسم المادة للمرحلة الثانوية", "حاصل على درع التميز التعليمي", "معلم معتمد للمرحلتين الإعدادية والثانوية", "منسق تدريب المعلمين الجدد" };
+
+        dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+
+        const int batchSize = 500;
+        var batch = new List<Teacher>(batchSize);
+
+        for (int i = currentCount + 1; i <= targetCount; i++)
+        {
+            bool isFemale = (i % 2 == 0);
+            Gender gender = isFemale ? Gender.Female : Gender.Male;
+            string firstName = isFemale
+                ? femaleFirstNames[(i / 2) % femaleFirstNames.Length]
+                : maleFirstNames[(i / 2) % maleFirstNames.Length];
+            string lastName = lastNames[i % lastNames.Length];
+
+            var emailResult = Email.Create($"teacher{i:D4}@education.eg");
+            var phoneResult = PhoneNumber.Create($"012{i:D8}");
+
+            int birthYear = 1970 + (i % 25);
+            int birthMonth = 1 + (i % 12);
+            int birthDay = 1 + (i % 28);
+            DateTime dob = new DateTime(birthYear, birthMonth, birthDay, 0, 0, 0, DateTimeKind.Utc);
+
+            string nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}01{i:D4}";
+            string teacherCode = $"TCH-{i:D4}";
+            string subject = subjects[i % subjects.Length];
+            string qualification = qualifications[i % qualifications.Length];
+            string address = addresses[i % addresses.Length];
+            string notes = notesList[i % notesList.Length];
+
+            var teacherResult = Teacher.Register(
+                firstName,
+                lastName,
+                emailResult.Value,
+                phoneResult.Value,
+                dob,
+                nationalId,
+                teacherCode,
+                subject,
+                qualification,
+                gender,
+                address,
+                notes);
+
+            if (!teacherResult.IsError)
+            {
+                batch.Add(teacherResult.Value);
+            }
+
+            if (batch.Count == batchSize)
+            {
+                await dbContext.Teachers.AddRangeAsync(batch);
+                await dbContext.SaveChangesAsync();
+                dbContext.ChangeTracker.Clear();
+                batch.Clear();
+            }
+        }
+
+        if (batch.Count > 0)
+        {
+            await dbContext.Teachers.AddRangeAsync(batch);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+            batch.Clear();
+        }
+
+        dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
+    }
+
+    public static async Task SeedTeachersAsync(this WebApplication app, int targetCount = 1000)
+    {
+        using var scope = app.Services.CreateScope();
+        await SeedTeachersDataAsync(scope.ServiceProvider, targetCount);
+    }
+
     public static async Task SeedDefaultAdminUserAsync(this WebApplication app)
     {
         using var scope = app.Services.CreateScope();

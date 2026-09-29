@@ -135,6 +135,9 @@ await app.WarmUpDatabaseAsync();
 // Ensure default Admin user is seeded if database is fresh
 await app.SeedDefaultAdminUserAsync();
 
+// Ensure 1000 Teachers are seeded if database is fresh
+await app.SeedTeachersAsync();
+
 app.UseHttpsRedirection();
 
 app.UseRateLimiter();

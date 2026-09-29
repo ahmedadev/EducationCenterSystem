@@ -42,6 +42,8 @@ static class Program
                 services.AddTransient<CoursesAndGroupsView>();
                 services.AddTransient<AttendanceView>();
                 services.AddTransient<AdminDashboardView>();
+                services.AddTransient<LoginView>();
+                services.AddTransient<RegisterView>();
 
                 // Main Form
                 services.AddSingleton<MainForm>();

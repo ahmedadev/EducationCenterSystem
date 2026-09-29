@@ -45,82 +45,32 @@ internal sealed class StudentRepository : IStudentRepository
         
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
-            var allStudents = await query.ToListAsync(cancellationToken);
-            var filtered = allStudents.Where(s => 
-                FuzzyMatchContains($"{s.FirstName} {s.LastName}", searchTerm) || 
-                FuzzyMatchContains(s.StudentCode, searchTerm) ||
-                FuzzyMatchContains(s.NationalId, searchTerm) ||
-                FuzzyMatchContains(s.PhoneNumber.Value, searchTerm)
-            ).ToList();
+            var term = searchTerm.ToLowerInvariant();
+            var likeTerm = $"%{term}%";
             
-            int skip = (page - 1) * pageSize;
-            if (skip < 0) skip = 0;
-            
-            var items = filtered.OrderBy(s => s.StudentCode).Skip(skip).Take(pageSize).ToList();
-            return (items, filtered.Count);
+            // PostgreSQL native fuzzy match using Trigrams or ILike combined with Levenshtein for precise fields
+            query = query.Where(s => 
+                EF.Functions.ILike(s.FirstName + " " + s.LastName, likeTerm) ||
+                EF.Functions.ILike(s.StudentCode, likeTerm) ||
+                EF.Functions.ILike(s.NationalId, likeTerm) ||
+                EF.Functions.ILike(s.PhoneNumber.Value, likeTerm) ||
+                // Add Levenshtein distance for typos on specific words if exact substring fails
+                EF.Functions.FuzzyStringMatchLevenshtein(s.FirstName.ToLower(), term) <= 2 ||
+                EF.Functions.FuzzyStringMatchLevenshtein(s.LastName.ToLower(), term) <= 2
+            );
         }
-        else
-        {
-            int totalCount = await query.CountAsync(cancellationToken);
-            int skip = (page - 1) * pageSize;
-            if (skip < 0) skip = 0;
 
-            var items = await query
-                .OrderBy(s => s.StudentCode)
-                .Skip(skip)
-                .Take(pageSize)
-                .ToListAsync(cancellationToken);
+        int totalCount = await query.CountAsync(cancellationToken);
+        int skip = (page - 1) * pageSize;
+        if (skip < 0) skip = 0;
 
-            return (items, totalCount);
-        }
-    }
+        var items = await query
+            .OrderBy(s => s.StudentCode)
+            .Skip(skip)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
 
-    private bool FuzzyMatchContains(string? source, string search, int maxDistance = 1)
-    {
-        if (string.IsNullOrWhiteSpace(source) || string.IsNullOrWhiteSpace(search)) return false;
-        
-        source = source.ToLowerInvariant();
-        search = search.ToLowerInvariant();
-        
-        if (source.Contains(search)) return true;
-
-        var sourceWords = source.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        var searchWords = search.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-
-        foreach (var sWord in searchWords)
-        {
-            foreach (var srcWord in sourceWords)
-            {
-                if (srcWord.Contains(sWord) || LevenshteinDistance(srcWord, sWord) <= maxDistance)
-                {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-    
-    private int LevenshteinDistance(string s, string t)
-    {
-        if (string.IsNullOrEmpty(s)) return string.IsNullOrEmpty(t) ? 0 : t.Length;
-        if (string.IsNullOrEmpty(t)) return s.Length;
-
-        int[] v0 = new int[t.Length + 1];
-        int[] v1 = new int[t.Length + 1];
-
-        for (int i = 0; i < v0.Length; i++) v0[i] = i;
-
-        for (int i = 0; i < s.Length; i++)
-        {
-            v1[0] = i + 1;
-            for (int j = 0; j < t.Length; j++)
-            {
-                int cost = (s[i] == t[j]) ? 0 : 1;
-                v1[j + 1] = Math.Min(v1[j] + 1, Math.Min(v0[j + 1] + 1, v0[j] + cost));
-            }
-            for (int j = 0; j < v0.Length; j++) v0[j] = v1[j];
-        }
-        return v1[t.Length];
+        return (items, totalCount);
     }
 
     public async Task<IReadOnlyList<Student>> GetByNameAsync(string name, CancellationToken cancellationToken = default)
