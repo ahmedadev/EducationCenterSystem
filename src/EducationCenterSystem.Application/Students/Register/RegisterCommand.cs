@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Enums;
+using EducationCenterSystem.Domain.Enums;
 using ErrorOr;
 using MediatR;
 
@@ -6,6 +6,8 @@ namespace EducationCenterSystem.Application.Students.Register;
 
 public sealed record RegisterCommand(
     string FirstName,
+    string SecondName,
+    string ThirdName,
     string LastName,
     string Email,
     string PhoneNumber,

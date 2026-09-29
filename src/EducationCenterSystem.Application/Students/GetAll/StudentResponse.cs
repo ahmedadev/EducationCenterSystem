@@ -5,6 +5,8 @@ namespace EducationCenterSystem.Application.Students.GetAll;
 public sealed record StudentResponse(
     Guid Id,
     string FirstName,
+    string SecondName,
+    string ThirdName,
     string LastName,
     string Email,
     string PhoneNumber,

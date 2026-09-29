@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Application.Common.Models;
+using EducationCenterSystem.Application.Common.Models;
 using EducationCenterSystem.Application.Teachers.GetAll;
 using EducationCenterSystem.Domain.Repositories;
 using ErrorOr;
@@ -25,6 +25,8 @@ public sealed class GetPagedQueryHandler
         var responseList = teachers.Select(teacher => new TeacherResponse(
             teacher.Id,
             teacher.FirstName,
+            teacher.SecondName,
+            teacher.ThirdName,
             teacher.LastName,
             teacher.Email.Value,
             teacher.PhoneNumber.Value,

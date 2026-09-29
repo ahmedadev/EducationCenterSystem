@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Enums;
+using EducationCenterSystem.Domain.Enums;
 using ErrorOr;
 using MediatR;
 
@@ -7,6 +7,8 @@ namespace EducationCenterSystem.Application.Students.UpdateProfile;
 public sealed record UpdateProfileCommand(
     Guid StudentId,
     string FirstName,
+    string SecondName,
+    string ThirdName,
     string LastName,
     string Email,
     string PhoneNumber,

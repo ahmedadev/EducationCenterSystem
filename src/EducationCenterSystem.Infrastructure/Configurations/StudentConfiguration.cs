@@ -11,6 +11,8 @@ internal sealed class StudentConfiguration : IEntityTypeConfiguration<Student>
         builder.HasKey(s => s.Id);
 
         builder.Property(s => s.FirstName).HasMaxLength(100).IsRequired();
+        builder.Property(s => s.SecondName).HasMaxLength(100).IsRequired(false);
+        builder.Property(s => s.ThirdName).HasMaxLength(100).IsRequired(false);
         builder.Property(s => s.LastName).HasMaxLength(100).IsRequired();
 
         builder.OwnsOne(s => s.Email, emailBuilder =>

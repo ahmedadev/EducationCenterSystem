@@ -9,6 +9,8 @@ namespace EducationCenterSystem.Domain.Entities;
 public sealed class Student : AggregateRoot
 {
     public string FirstName { get; private set; }
+    public string SecondName { get; private set; }
+    public string ThirdName { get; private set; }
     public string LastName { get; private set; }
     public Email Email { get; private set; }
     public PhoneNumber PhoneNumber { get; private set; }
@@ -33,6 +35,8 @@ public sealed class Student : AggregateRoot
     private Student() : base()
     {
         FirstName = default!;
+        SecondName = default!;
+        ThirdName = default!;
         LastName = default!;
         Email = default!;
         PhoneNumber = default!;
@@ -44,6 +48,8 @@ public sealed class Student : AggregateRoot
     private Student(
         Guid id,
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -60,6 +66,8 @@ public sealed class Student : AggregateRoot
         string? notes) : base(id)
     {
         FirstName = firstName;
+        SecondName = secondName;
+        ThirdName = thirdName;
         LastName = lastName;
         Email = email;
         PhoneNumber = phoneNumber;
@@ -79,6 +87,8 @@ public sealed class Student : AggregateRoot
 
     public static ErrorOr<Student> Register(
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -110,6 +120,8 @@ public sealed class Student : AggregateRoot
         var student = new Student(
             Guid.NewGuid(),
             firstName,
+            secondName,
+            thirdName,
             lastName,
             email,
             phoneNumber,
@@ -149,6 +161,8 @@ public sealed class Student : AggregateRoot
 
     public ErrorOr<Success> UpdateProfile(
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -187,6 +201,8 @@ public sealed class Student : AggregateRoot
             return Error.Validation("Student.ParentPhoneNumber", "Parent phone number cannot be null.");
 
         FirstName = firstName;
+        SecondName = secondName;
+        ThirdName = thirdName;
         LastName = lastName;
         Email = email;
         PhoneNumber = phoneNumber;

@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Application.Students.GetAll;
+using EducationCenterSystem.Application.Students.GetAll;
 using EducationCenterSystem.Domain.Repositories;
 using ErrorOr;
 using MediatR;
@@ -18,6 +18,8 @@ internal sealed class GetByNameQueryHandler : IRequestHandler<GetByNameQuery, Er
         var response = students.Select(student => new StudentResponse(
             student.Id,
             student.FirstName,
+            student.SecondName,
+            student.ThirdName,
             student.LastName,
             student.Email.Value,
             student.PhoneNumber.Value,

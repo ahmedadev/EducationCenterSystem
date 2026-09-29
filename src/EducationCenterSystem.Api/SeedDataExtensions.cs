@@ -26,7 +26,7 @@ public static class SeedDataExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
         int currentCount = await dbContext.Students.CountAsync();
-        const int targetCount = 100000;
+        const int targetCount = 1000;
 
         if (currentCount >= targetCount)
         {
@@ -63,8 +63,13 @@ public static class SeedDataExtensions
             string address = _addresses[i % _addresses.Length];
             string? notes = (i % 3 == 0) ? "طالب متميز ومتفوق" : (i % 5 == 0 ? "يحتاج لمتابعة في الواجبات" : null);
 
+            string secondName = _maleNames[(i * 7) % _maleNames.Length];
+            string thirdName = _maleNames[(i * 13) % _maleNames.Length];
+
             var studentResult = Student.Register(
                 firstName,
+                secondName,
+                thirdName,
                 lastName,
                 emailResult.Value,
                 phoneResult.Value,
@@ -103,7 +108,7 @@ public static class SeedDataExtensions
         dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
     }
 
-    public static async Task SeedTeachersDataAsync(IServiceProvider services, int targetCount = 700)
+    public static async Task SeedTeachersDataAsync(IServiceProvider services, int targetCount = 70)
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -211,10 +216,15 @@ public static class SeedDataExtensions
         dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
     }
 
-    public static async Task SeedTeachersAsync(this WebApplication app, int targetCount = 700)
+    public static async Task SeedTeachersAsync(this WebApplication app, int targetCount = 70)
     {
         using var scope = app.Services.CreateScope();
         await SeedTeachersDataAsync(scope.ServiceProvider, targetCount);
+    }
+
+    public static async Task SeedStudentsAsync(this WebApplication app)
+    {
+        await SeedDataAsync(app.Services);
     }
 
     public static async Task SeedDefaultAdminUserAsync(this WebApplication app)

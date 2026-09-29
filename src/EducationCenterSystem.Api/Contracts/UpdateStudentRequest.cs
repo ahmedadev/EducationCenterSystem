@@ -4,6 +4,8 @@ namespace EducationCenterSystem.Api.Contracts;
 
 public sealed record UpdateStudentRequest(
     string FirstName,
+    string SecondName,
+    string ThirdName,
     string LastName,
     string Email,
     string PhoneNumber,

@@ -104,6 +104,8 @@ public sealed class StudentsController : ApiController
         var command = new Application.Students.UpdateProfile.UpdateProfileCommand(
             id,
             request.FirstName,
+            request.SecondName,
+            request.ThirdName,
             request.LastName,
             request.Email,
             request.PhoneNumber,

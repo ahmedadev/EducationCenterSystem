@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Repositories;
+using EducationCenterSystem.Domain.Repositories;
 using ErrorOr;
 using MediatR;
 
@@ -17,6 +17,8 @@ internal sealed class GetAllQueryHandler : IRequestHandler<GetAllQuery, ErrorOr<
         var response = teachers.Select(teacher => new TeacherResponse(
             teacher.Id,
             teacher.FirstName,
+            teacher.SecondName,
+            teacher.ThirdName,
             teacher.LastName,
             teacher.Email.Value,
             teacher.PhoneNumber.Value,

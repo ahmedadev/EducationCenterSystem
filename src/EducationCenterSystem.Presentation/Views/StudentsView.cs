@@ -72,7 +72,7 @@ public partial class StudentsView : UserControl
                             Id = s.Id,
                             SerialNumber = index++,
                             StudentCode = s.StudentCode,
-                            FullName = $"{s.FirstName} {s.LastName}",
+                            FullName = $"{s.FirstName} {s.SecondName} {s.ThirdName} {s.LastName}".Replace("  ", " ").Trim(),
                             PhoneNumber = s.PhoneNumber,
                             ParentPhoneNumber = s.ParentPhoneNumber,
                             GradeLevel = s.GradeLevel,
@@ -116,6 +116,8 @@ public partial class StudentsView : UserControl
         };
 
         var firstNameField = new FormField { LabelText = "الاسم الأول *", Dock = DockStyle.Top };
+        var secondNameField = new FormField { LabelText = "الاسم الثاني", Dock = DockStyle.Top };
+        var thirdNameField = new FormField { LabelText = "الاسم الثالث", Dock = DockStyle.Top };
         var lastNameField = new FormField { LabelText = "الاسم الأخير *", Dock = DockStyle.Top };
         var phoneField = new FormField { LabelText = "رقم الهاتف *", Dock = DockStyle.Top };
         var parentPhoneField = new FormField { LabelText = "رقم ولي الأمر *", Dock = DockStyle.Top };
@@ -140,6 +142,8 @@ public partial class StudentsView : UserControl
             var payload = new StudentModel
             {
                 FirstName = firstNameField.Value.Trim(),
+                SecondName = secondNameField.Value.Trim(),
+                ThirdName = thirdNameField.Value.Trim(),
                 LastName = lastNameField.Value.Trim(),
                 PhoneNumber = phoneField.Value.Trim(),
                 ParentPhoneNumber = parentPhoneField.Value.Trim(),
@@ -173,6 +177,8 @@ public partial class StudentsView : UserControl
         container.Controls.Add(parentPhoneField);
         container.Controls.Add(phoneField);
         container.Controls.Add(lastNameField);
+        container.Controls.Add(thirdNameField);
+        container.Controls.Add(secondNameField);
         container.Controls.Add(firstNameField);
         container.Controls.Add(btnSave);
 

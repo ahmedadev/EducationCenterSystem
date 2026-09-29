@@ -28,6 +28,8 @@ public sealed class GetGroupStudentsQueryHandler : IRequestHandler<GetGroupStude
         var responses = students.Select(s => new StudentResponse(
             s.Id,
             s.FirstName,
+            s.SecondName,
+            s.ThirdName,
             s.LastName,
             s.Email.Value,
             s.PhoneNumber.Value,
