@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Presentation.WinForms.Models.Enums;
+using EducationCenterSystem.Presentation.WinForms.Models.Enums;
 using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace EducationCenterSystem.Presentation.WinForms.Models;
@@ -13,6 +13,12 @@ public partial class TeacherModel : ObservableObject
 
     [ObservableProperty]
     private string _firstName = string.Empty;
+
+    [ObservableProperty]
+    private string _secondName = string.Empty;
+
+    [ObservableProperty]
+    private string _thirdName = string.Empty;
 
     [ObservableProperty]
     private string _lastName = string.Empty;

@@ -303,7 +303,7 @@ public class TeachersView : UserControl
         using var form = new Form
         {
             Text = "إضافة معلم جديد",
-            Size = new Size(450, 480),
+            Size = new Size(500, 750),
             StartPosition = FormStartPosition.CenterParent,
             BackColor = AppTheme.BackgroundDark,
             ForeColor = AppTheme.TextPrimary,
@@ -314,34 +314,73 @@ public class TeachersView : UserControl
         };
 
         var firstNameField = new FormField { LabelText = "الاسم الأول *", Dock = DockStyle.Top };
+        var secondNameField = new FormField { LabelText = "الاسم الثاني *", Dock = DockStyle.Top };
+        var thirdNameField = new FormField { LabelText = "الاسم الثالث *", Dock = DockStyle.Top };
         var lastNameField = new FormField { LabelText = "الاسم الأخير *", Dock = DockStyle.Top };
-        var specField = new FormField { LabelText = "المادة / التخصص *", Dock = DockStyle.Top };
-        var phoneField = new FormField { LabelText = "رقم الهاتف *", Dock = DockStyle.Top };
         var emailField = new FormField { LabelText = "البريد الإلكتروني", Dock = DockStyle.Top };
+        var phoneField = new FormField { LabelText = "رقم الهاتف *", Dock = DockStyle.Top };
+        
+        var dateOfBirthPanel = new Panel { Dock = DockStyle.Top, Height = 65, BackColor = Color.Transparent };
+        var dateOfBirthLabel = new Label { Text = "تاريخ الميلاد", Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption, TextAlign = ContentAlignment.MiddleRight };
+        var dateOfBirthPicker = new DateTimePicker { Dock = DockStyle.Bottom, Height = 32, Format = DateTimePickerFormat.Short, RightToLeftLayout = true };
+        dateOfBirthPanel.Controls.Add(dateOfBirthPicker);
+        dateOfBirthPanel.Controls.Add(dateOfBirthLabel);
+
+        var nationalIdField = new FormField { LabelText = "الرقم القومي", Dock = DockStyle.Top };
+        var teacherCodeField = new FormField { LabelText = "كود المعلم *", Dock = DockStyle.Top };
+        var specField = new FormField { LabelText = "المادة / التخصص *", Dock = DockStyle.Top };
+        var qualField = new FormField { LabelText = "المؤهل", Dock = DockStyle.Top };
+        
+        var genderPanel = new Panel { Dock = DockStyle.Top, Height = 65, BackColor = Color.Transparent };
+        var genderLabel = new Label { Text = "الجنس", Dock = DockStyle.Top, Height = 22, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption, TextAlign = ContentAlignment.MiddleRight };
+        var genderCombo = new ComboBox { Dock = DockStyle.Bottom, Height = 32, DropDownStyle = ComboBoxStyle.DropDownList, BackColor = AppTheme.SurfaceCard, ForeColor = AppTheme.TextPrimary };
+        genderCombo.Items.Add("ذكر");
+        genderCombo.Items.Add("أنثى");
+        genderCombo.SelectedIndex = 0;
+        genderPanel.Controls.Add(genderCombo);
+        genderPanel.Controls.Add(genderLabel);
+
+        var addressField = new FormField { LabelText = "العنوان", Dock = DockStyle.Top };
+        var notesField = new FormField { LabelText = "ملاحظات", Dock = DockStyle.Top };
 
         var btnSave = new AppButton
         {
             Text = "حفظ البيانات",
             Variant = ButtonVariant.Primary,
-            Dock = DockStyle.Bottom,
+            Dock = DockStyle.Fill,
             Height = 40
         };
 
         btnSave.Click += async (s, e) =>
         {
-            if (string.IsNullOrWhiteSpace(firstNameField.Value) || string.IsNullOrWhiteSpace(lastNameField.Value))
+            if (string.IsNullOrWhiteSpace(firstNameField.Value) || 
+                string.IsNullOrWhiteSpace(secondNameField.Value) || 
+                string.IsNullOrWhiteSpace(thirdNameField.Value) || 
+                string.IsNullOrWhiteSpace(lastNameField.Value) || 
+                string.IsNullOrWhiteSpace(teacherCodeField.Value) ||
+                string.IsNullOrWhiteSpace(specField.Value) ||
+                string.IsNullOrWhiteSpace(phoneField.Value))
             {
-                _dialogService.ShowError("الرجاء إدخال الاسم الأول والأخير", "تنبيه");
+                _dialogService.ShowError("الرجاء إدخال الحقول المطلوبة الأساسية (*)", "تنبيه");
                 return;
             }
 
             var payload = new
             {
                 firstName = firstNameField.Value.Trim(),
+                secondName = secondNameField.Value.Trim(),
+                thirdName = thirdNameField.Value.Trim(),
                 lastName = lastNameField.Value.Trim(),
-                specialization = specField.Value.Trim(),
+                email = emailField.Value.Trim(),
                 phoneNumber = phoneField.Value.Trim(),
-                email = emailField.Value.Trim()
+                dateOfBirth = dateOfBirthPicker.Value.ToString("yyyy-MM-dd"),
+                nationalId = string.IsNullOrWhiteSpace(nationalIdField.Value) ? null : nationalIdField.Value.Trim(),
+                teacherCode = teacherCodeField.Value.Trim(),
+                subject = specField.Value.Trim(),
+                qualification = string.IsNullOrWhiteSpace(qualField.Value) ? null : qualField.Value.Trim(),
+                gender = genderCombo.SelectedIndex == 0 ? 1 : 2,
+                address = string.IsNullOrWhiteSpace(addressField.Value) ? null : addressField.Value.Trim(),
+                notes = string.IsNullOrWhiteSpace(notesField.Value) ? null : notesField.Value.Trim()
             };
 
             try
@@ -365,15 +404,27 @@ public class TeachersView : UserControl
             }
         };
 
-        var container = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
-        container.Controls.Add(emailField);
-        container.Controls.Add(phoneField);
+        var container = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20), AutoScroll = true };
+        container.Controls.Add(notesField);
+        container.Controls.Add(addressField);
+        container.Controls.Add(genderPanel);
+        container.Controls.Add(qualField);
         container.Controls.Add(specField);
+        container.Controls.Add(teacherCodeField);
+        container.Controls.Add(nationalIdField);
+        container.Controls.Add(dateOfBirthPanel);
+        container.Controls.Add(phoneField);
+        container.Controls.Add(emailField);
         container.Controls.Add(lastNameField);
+        container.Controls.Add(thirdNameField);
+        container.Controls.Add(secondNameField);
         container.Controls.Add(firstNameField);
-        container.Controls.Add(btnSave);
+        
+        var bottomPanel = new Panel { Dock = DockStyle.Bottom, Height = 80, Padding = new Padding(20) };
+        bottomPanel.Controls.Add(btnSave);
 
         form.Controls.Add(container);
+        form.Controls.Add(bottomPanel);
         form.ShowDialog(this);
     }
 }

@@ -107,4 +107,80 @@ public sealed class TeacherTests
         teacher.PhoneNumber.Value.Should().Be("01233445566");
         teacher.Address.Should().Be("عنوان جديد");
     }
+
+    [Fact]
+    public void UpdateProfile_ShouldUpdateProfileFields_WhenValidDataProvided()
+    {
+        // Arrange
+        var teacher = Teacher.Register(
+            "طارق",
+            "الثاني",
+            "الثالث",
+            "محمود",
+            _validEmail,
+            _validPhone,
+            new DateTime(1985, 3, 15, 0, 0, 0, DateTimeKind.Utc),
+            "28503151234567",
+            "TCH-0100",
+            "اللغة الإنجليزية",
+            null,
+            Gender.Male,
+            "قديم",
+            null).Value;
+
+        var newEmail = Email.Create("new.email@test.com").Value;
+        var newPhone = PhoneNumber.Create("01112223344").Value;
+
+        // Act
+        var result = teacher.UpdateProfile(
+            "أحمد",
+            "علي",
+            "حسن",
+            "مصطفى",
+            newEmail,
+            newPhone,
+            new DateTime(1990, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "29001011234567",
+            "TCH-0200",
+            "الرياضيات",
+            "بكالوريوس",
+            Gender.Male,
+            "القاهرة",
+            "ملاحظة");
+
+        // Assert
+        result.IsError.Should().BeFalse();
+        teacher.FirstName.Should().Be("أحمد");
+        teacher.SecondName.Should().Be("علي");
+        teacher.Email.Value.Should().Be("new.email@test.com");
+        teacher.PhoneNumber.Value.Should().Be("01112223344");
+        teacher.Subject.Should().Be("الرياضيات");
+    }
+
+    [Fact]
+    public void ChangeStatus_ShouldUpdateStatus()
+    {
+        // Arrange
+        var teacher = Teacher.Register(
+            "طارق",
+            "الثاني",
+            "الثالث",
+            "محمود",
+            _validEmail,
+            _validPhone,
+            new DateTime(1985, 3, 15, 0, 0, 0, DateTimeKind.Utc),
+            "28503151234567",
+            "TCH-0100",
+            "اللغة الإنجليزية",
+            null,
+            Gender.Male,
+            "قديم",
+            null).Value;
+
+        // Act
+        teacher.ChangeStatus(TeacherStatus.Inactive);
+
+        // Assert
+        teacher.Status.Should().Be(TeacherStatus.Inactive);
+    }
 }
