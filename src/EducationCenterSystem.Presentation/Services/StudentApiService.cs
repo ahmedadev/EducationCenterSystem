@@ -11,9 +11,9 @@ public class StudentApiService : IStudentApiService
     private readonly ILogger<StudentApiService> _logger;
     private const string BaseUrl = "api/students";
 
-    public StudentApiService(HttpClient httpClient, ILogger<StudentApiService> logger)
+    public StudentApiService(IHttpClientFactory httpClientFactory, ILogger<StudentApiService> logger)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
     }
 

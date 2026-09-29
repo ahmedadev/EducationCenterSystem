@@ -24,6 +24,9 @@ builder.Services.AddEndpointsApiExplorer();
 // Swagger with JWT Support
 builder.Services.AddSwaggerGen(options =>
 {
+    options.CustomSchemaIds(type => type.FullName?.Replace("+", ".") ?? type.Name);
+    options.CustomOperationIds(e => $"{e.ActionDescriptor.RouteValues["controller"]}_{e.ActionDescriptor.RouteValues["action"]}");
+    options.ResolveConflictingActions(a => a.First());
     options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Education Center System API",

@@ -10,9 +10,9 @@ public class AuthApiService : IAuthApiService
     private readonly HttpClient _httpClient;
     private readonly ILogger<AuthApiService> _logger;
 
-    public AuthApiService(HttpClient httpClient, ILogger<AuthApiService> logger)
+    public AuthApiService(IHttpClientFactory httpClientFactory, ILogger<AuthApiService> logger)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
     }
 

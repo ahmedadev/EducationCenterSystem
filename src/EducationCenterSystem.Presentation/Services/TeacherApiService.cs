@@ -11,9 +11,9 @@ public class TeacherApiService : ITeacherApiService
     private readonly ILogger<TeacherApiService> _logger;
     private const string BaseUrl = "api/teachers";
 
-    public TeacherApiService(HttpClient httpClient, ILogger<TeacherApiService> logger)
+    public TeacherApiService(IHttpClientFactory httpClientFactory, ILogger<TeacherApiService> logger)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
         _logger = logger;
     }
 

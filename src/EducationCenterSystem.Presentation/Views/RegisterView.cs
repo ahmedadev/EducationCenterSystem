@@ -5,7 +5,7 @@ using EducationCenterSystem.Presentation.WinForms.Theme;
 
 namespace EducationCenterSystem.Presentation.WinForms.Views;
 
-public class RegisterView : UserControl
+public partial class RegisterView : UserControl
 {
     private readonly IAuthApiService _authApiService;
     private readonly IDialogService _dialogService;
@@ -13,15 +13,15 @@ public class RegisterView : UserControl
 
     public event EventHandler? BackToLoginRequested;
 
-    private readonly FormField _firstNameField;
-    private readonly FormField _lastNameField;
-    private readonly FormField _emailField;
-    private readonly FormField _passwordField;
-    private readonly FormField _phoneField;
+    private FormField _firstNameField = null!;
+    private FormField _lastNameField = null!;
+    private FormField _emailField = null!;
+    private FormField _passwordField = null!;
+    private FormField _phoneField = null!;
 
-    private readonly AppButton _btnRegister;
-    private readonly AppButton _btnBack;
-    private readonly Label _errorLabel;
+    private AppButton _btnRegister = null!;
+    private AppButton _btnBack = null!;
+    private Label _errorLabel = null!;
 
     public RegisterView(IAuthApiService authApiService, IDialogService dialogService, IServiceProvider serviceProvider)
     {
@@ -29,95 +29,7 @@ public class RegisterView : UserControl
         _dialogService = dialogService;
         _serviceProvider = serviceProvider;
 
-        Dock = DockStyle.Fill;
-        BackColor = AppTheme.BackgroundDark;
-        RightToLeft = RightToLeft.Yes;
-
-        var card = new Panel
-        {
-            Width = 450,
-            Height = 650,
-            BackColor = AppTheme.SurfaceCard,
-            Padding = new Padding(40)
-        };
-
-        Resize += (s, e) =>
-        {
-            card.Left = (Width - card.Width) / 2;
-            card.Top = (Height - card.Height) / 2;
-        };
-
-        var titleLabel = new Label
-        {
-            Text = "إنشاء حساب جديد",
-            Font = AppTheme.FontHero,
-            ForeColor = AppTheme.TextPrimary,
-            AutoSize = true,
-            Dock = DockStyle.Top,
-            TextAlign = ContentAlignment.MiddleCenter,
-            Margin = new Padding(0, 0, 0, 10)
-        };
-
-        var subtitleLabel = new Label
-        {
-            Text = "قم بتسجيل بيانات المستخدم الجديد",
-            Font = AppTheme.FontCaption,
-            ForeColor = AppTheme.TextSecondary,
-            AutoSize = true,
-            Dock = DockStyle.Top,
-            TextAlign = ContentAlignment.MiddleCenter,
-            Margin = new Padding(0, 0, 0, 20)
-        };
-
-        _firstNameField = new FormField { LabelText = "الاسم الأول", Dock = DockStyle.Top, Height = 65 };
-        _lastNameField = new FormField { LabelText = "الاسم الأخير", Dock = DockStyle.Top, Height = 65 };
-        _emailField = new FormField { LabelText = "البريد الإلكتروني", Dock = DockStyle.Top, Height = 65 };
-        _phoneField = new FormField { LabelText = "رقم الهاتف", Dock = DockStyle.Top, Height = 65 };
-        _passwordField = new FormField { LabelText = "كلمة المرور", Dock = DockStyle.Top, Height = 65, IsPassword = true };
-
-        _errorLabel = new Label
-        {
-            Text = "",
-            Font = AppTheme.FontCaption,
-            ForeColor = AppTheme.StatusDanger,
-            AutoSize = true,
-            Dock = DockStyle.Top,
-            Margin = new Padding(0, 5, 0, 10)
-        };
-
-        _btnRegister = new AppButton
-        {
-            Text = "إنشاء حساب",
-            Variant = ButtonVariant.Primary,
-            Dock = DockStyle.Top,
-            Height = 45,
-            Margin = new Padding(0, 15, 0, 10)
-        };
-
-        _btnBack = new AppButton
-        {
-            Text = "العودة لتسجيل الدخول",
-            Variant = ButtonVariant.Secondary,
-            Dock = DockStyle.Top,
-            Height = 40,
-            Margin = new Padding(0, 10, 0, 0)
-        };
-
-        _btnRegister.Click += async (s, e) => await PerformRegisterAsync();
-        _btnBack.Click += (s, e) => BackToLoginRequested?.Invoke(this, EventArgs.Empty);
-
-        card.Controls.Add(_btnBack);
-        card.Controls.Add(_btnRegister);
-        card.Controls.Add(_errorLabel);
-        card.Controls.Add(_passwordField);
-        card.Controls.Add(_phoneField);
-        card.Controls.Add(_emailField);
-        card.Controls.Add(_lastNameField);
-        card.Controls.Add(_firstNameField);
-        card.Controls.Add(subtitleLabel);
-        card.Controls.Add(titleLabel);
-
-        Controls.Add(card);
+        InitializeComponent();
     }
 
     private async Task PerformRegisterAsync()
