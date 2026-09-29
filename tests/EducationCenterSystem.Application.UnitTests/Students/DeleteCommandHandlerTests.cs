@@ -28,6 +28,8 @@ public sealed class DeleteCommandHandlerTests
         var studentId = Guid.NewGuid();
         var student = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             Email.Create("student@test.com").Value,
             PhoneNumber.Create("01012345678").Value,

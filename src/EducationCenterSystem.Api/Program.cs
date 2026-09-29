@@ -165,6 +165,9 @@ await app.SeedTeachersAsync();
 // Ensure 1000 Students are seeded if database is fresh
 await app.SeedStudentsAsync();
 
+// Ensure 500 Parents are seeded and linked if database is fresh
+await app.SeedParentsAsync();
+
 app.UseHttpsRedirection();
 
 app.UseRateLimiter();

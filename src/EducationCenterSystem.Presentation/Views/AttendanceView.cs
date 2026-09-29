@@ -25,7 +25,7 @@ public partial class AttendanceView : UserControl
         _attendanceApiService = attendanceApiService;
 
         InitializeComponent();
-
+        _grid.ApplyModernTheme();
 
 
         _ = LoadGroupsDropdownAsync();

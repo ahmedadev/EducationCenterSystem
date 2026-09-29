@@ -29,7 +29,7 @@ public partial class TeachersView : UserControl
         _dialogService = dialogService;
 
         InitializeComponent();
-
+        _grid.ApplyModernTheme();
         _ = LoadTeachersAsync();
     }
 

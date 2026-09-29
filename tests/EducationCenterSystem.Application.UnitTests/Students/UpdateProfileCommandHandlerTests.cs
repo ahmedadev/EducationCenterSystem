@@ -23,6 +23,8 @@ public sealed class UpdateProfileCommandHandlerTests
 
         _existingStudent = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             Email.Create("student@test.com").Value,
             PhoneNumber.Create("01012345678").Value,
@@ -44,6 +46,8 @@ public sealed class UpdateProfileCommandHandlerTests
         var command = new UpdateProfileCommand(
             _existingStudent.Id,
             "محمود",
+            "عادل",
+            "محمد",
             "حسن",
             "newstudent@test.com",
             "01222334455",
@@ -76,7 +80,7 @@ public sealed class UpdateProfileCommandHandlerTests
     {
         // Arrange
         var command = new UpdateProfileCommand(
-            Guid.NewGuid(), "محمود", "حسن", "newstudent@test.com", "01222334455",
+            Guid.NewGuid(), "محمود", "عادل", "محمد", "حسن", "newstudent@test.com", "01222334455",
             DateTime.UtcNow.AddYears(-15), "30801011234567", "01555667788", "الصف الثاني الثانوي", "STU-0002", null, Gender.Male, null, null);
 
         _studentRepositoryMock.Setup(x => x.GetByIdAsync(command.StudentId, It.IsAny<CancellationToken>()))

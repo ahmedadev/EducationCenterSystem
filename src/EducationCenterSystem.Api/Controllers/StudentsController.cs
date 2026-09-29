@@ -143,4 +143,19 @@ public sealed class StudentsController : ApiController
 
         return NoContent();
     }
+
+    [HttpPost("{id:guid}/link-parent/{parentId:guid}")]
+    [HasPermission(Permission.StudentsUpdate)]
+    public async Task<IActionResult> LinkParent(Guid id, Guid parentId, CancellationToken cancellationToken)
+    {
+        var command = new Application.Students.LinkParent.LinkParentCommand(id, parentId);
+        var result = await _sender.Send(command, cancellationToken);
+
+        if (result.IsError)
+        {
+            return Problem(result.Errors);
+        }
+
+        return Ok();
+    }
 }

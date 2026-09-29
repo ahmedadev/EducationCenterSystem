@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddTransient<IAuthApiService, AuthApiService>();
         services.AddTransient<ITeacherApiService, TeacherApiService>();
         services.AddTransient<IStudentApiService, StudentApiService>();
+        services.AddTransient<IParentApiService, ParentApiService>();
         services.AddTransient<IEducationalGroupApiService, EducationalGroupApiService>();
         services.AddTransient<ICourseApiService, CourseApiService>();
         services.AddTransient<IAttendanceApiService, AttendanceApiService>();
@@ -37,6 +38,7 @@ public static class DependencyInjection
 
         // UserControls (Views)
         services.AddTransient<StudentsView>();
+        services.AddTransient<ParentsView>();
         services.AddTransient<TeachersView>();
         services.AddTransient<CoursesAndGroupsView>();
         services.AddTransient<AttendanceView>();

@@ -17,6 +17,7 @@ public static class DependencyInjection
                 npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
 
         services.AddScoped<IStudentRepository, StudentRepository>();
+        services.AddScoped<IParentRepository, ParentRepository>();
         services.AddScoped<ITeacherRepository, TeacherRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();

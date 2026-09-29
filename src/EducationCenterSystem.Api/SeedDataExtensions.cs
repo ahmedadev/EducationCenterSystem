@@ -278,4 +278,97 @@ public static class SeedDataExtensions
             }
         }
     }
+
+    public static async Task SeedParentsDataAsync(IServiceProvider services, int targetCount = 500)
+    {
+        using var scope = services.CreateScope();
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        int currentCount = await dbContext.Parents.CountAsync();
+        if (currentCount >= targetCount)
+        {
+            return;
+        }
+
+        dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
+
+        var studentsToLink = await dbContext.Students
+            .Where(s => s.ParentId == null)
+            .OrderBy(s => s.Id)
+            .Take(960)
+            .ToListAsync();
+
+        int studentIndex = 0;
+        var batch = new List<Parent>(500);
+
+        for (int i = currentCount + 1; i <= targetCount; i++)
+        {
+            string firstName = _maleNames[i % _maleNames.Length];
+            string secondName = _maleNames[(i * 2) % _maleNames.Length];
+            string thirdName = _maleNames[(i * 3) % _maleNames.Length];
+            string lastName = _lastNames[i % _lastNames.Length];
+
+            string uniqueStr = Guid.NewGuid().ToString()[..4];
+            var emailResult = Email.Create($"parent{i:D4}_{uniqueStr}@education.eg");
+            var phoneResult = PhoneNumber.Create($"011{i:D8}");
+
+            int birthYear = 1960 + (i % 20);
+            int birthMonth = 1 + (i % 12);
+            int birthDay = 1 + (i % 28);
+            int rndPart = Random.Shared.Next(1000, 9999);
+            string nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}{rndPart}{i:D3}";
+            if (nationalId.Length > 14) nationalId = nationalId[..14];
+
+            string job = "موظف";
+            string address = _addresses[i % _addresses.Length];
+            string notes = "تم إضافته عشوائياً";
+
+            var parentResult = Parent.Register(
+                firstName,
+                secondName,
+                thirdName,
+                lastName,
+                emailResult.Value,
+                phoneResult.Value,
+                nationalId,
+                job,
+                address,
+                notes);
+
+            if (!parentResult.IsError)
+            {
+                var parent = parentResult.Value;
+
+                int targetLink = 1;
+                if (i <= 20) targetLink = 4;
+                else if (i <= 70) targetLink = 3;
+                else if (i <= 370) targetLink = 2;
+
+                for (int j = 0; j < targetLink; j++)
+                {
+                    if (studentIndex < studentsToLink.Count)
+                    {
+                        var st = studentsToLink[studentIndex++];
+                        typeof(Student).GetProperty("ParentId")?.SetValue(st, parent.Id);
+                    }
+                }
+
+                batch.Add(parent);
+            }
+        }
+
+        if (batch.Count > 0)
+        {
+            await dbContext.Parents.AddRangeAsync(batch);
+            await dbContext.SaveChangesAsync();
+            dbContext.ChangeTracker.Clear();
+        }
+
+        dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
+    }
+
+    public static async Task SeedParentsAsync(this WebApplication app)
+    {
+        await SeedParentsDataAsync(app.Services);
+    }
 }

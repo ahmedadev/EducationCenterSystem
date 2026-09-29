@@ -88,4 +88,18 @@ public class StudentApiService : IStudentApiService
             return false;
         }
     }
+
+    public async Task<bool> LinkParentAsync(Guid studentId, Guid parentId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var response = await _httpClient.PostAsync($"{BaseUrl}/{studentId}/link-parent/{parentId}", null, cancellationToken);
+            return response.IsSuccessStatusCode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking parent {ParentId} to student {StudentId} via API.", parentId, studentId);
+            return false;
+        }
+    }
 }

@@ -154,6 +154,7 @@ public class MainForm : Form
         };
 
         CreateNavTab("الطلاب", () => _serviceProvider.GetRequiredService<StudentsView>(), true);
+        CreateNavTab("أولياء الأمور", () => _serviceProvider.GetRequiredService<ParentsView>());
         CreateNavTab("المعلمين", () => _serviceProvider.GetRequiredService<TeachersView>());
         CreateNavTab("المواد والمجموعات", () => _serviceProvider.GetRequiredService<CoursesAndGroupsView>());
         CreateNavTab("الحضور والغياب", () => _serviceProvider.GetRequiredService<AttendanceView>());

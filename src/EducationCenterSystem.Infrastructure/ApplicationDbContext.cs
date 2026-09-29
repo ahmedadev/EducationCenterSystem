@@ -11,6 +11,7 @@ public sealed class ApplicationDbContext : DbContext
     }
 
     public DbSet<Student> Students { get; set; }
+    public DbSet<Parent> Parents { get; set; }
     public DbSet<Teacher> Teachers { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Role> Roles { get; set; }

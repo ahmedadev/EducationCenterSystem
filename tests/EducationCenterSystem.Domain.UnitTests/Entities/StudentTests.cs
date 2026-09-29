@@ -30,6 +30,8 @@ public sealed class StudentTests
         // Act
         var result = Student.Register(
             firstName,
+            "Second",
+            "Third",
             lastName,
             _validEmail,
             _validPhone,
@@ -64,6 +66,8 @@ public sealed class StudentTests
         // Act
         var result = Student.Register(
             firstName,
+            "Second",
+            "Third",
             lastName,
             _validEmail,
             _validPhone,
@@ -91,6 +95,8 @@ public sealed class StudentTests
         // Act
         var result = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             _validEmail,
             _validPhone,
@@ -118,6 +124,8 @@ public sealed class StudentTests
         // Act
         var result = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             _validEmail,
             _validPhone,
@@ -141,7 +149,7 @@ public sealed class StudentTests
     {
         // Arrange
         var student = Student.Register(
-            "أحمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "أحمد", "عادل", "محمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             "30801011234567", _validParentPhone, "الصف الأول الثانوي", "STU-0001", null, Gender.Male, null, null).Value;
 
         // Act
@@ -157,7 +165,7 @@ public sealed class StudentTests
     {
         // Arrange
         var student = Student.Register(
-            "أحمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            "أحمد", "عادل", "محمد", "علاء", _validEmail, _validPhone, new DateTime(2008, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             "30801011234567", _validParentPhone, "الصف الأول الثانوي", "STU-0001", null, Gender.Male, null, null).Value;
 
         // Act
@@ -174,6 +182,8 @@ public sealed class StudentTests
         // Arrange
         var student = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             _validEmail,
             _validPhone,
@@ -193,6 +203,8 @@ public sealed class StudentTests
         // Act
         var updateResult = student.UpdateProfile(
             "محمود",
+            "صلاح",
+            "عمر",
             "السيد",
             newEmail,
             newPhone,
@@ -221,6 +233,8 @@ public sealed class StudentTests
         // Arrange
         var student = Student.Register(
             "أحمد",
+            "عادل",
+            "محمد",
             "علاء",
             _validEmail,
             _validPhone,

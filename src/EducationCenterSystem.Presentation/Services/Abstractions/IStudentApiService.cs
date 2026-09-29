@@ -9,4 +9,5 @@ public interface IStudentApiService
     Task<bool> CreateStudentAsync(StudentModel student, CancellationToken cancellationToken = default);
     Task<bool> UpdateStudentAsync(Guid id, StudentModel student, CancellationToken cancellationToken = default);
     Task<bool> DeleteStudentAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<bool> LinkParentAsync(Guid studentId, Guid parentId, CancellationToken cancellationToken = default);
 }

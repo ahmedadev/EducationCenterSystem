@@ -27,6 +27,8 @@ public sealed class Student : AggregateRoot
     public string? Address { get; private set; }
     public StudentStatus Status { get; private set; }
     public string? Notes { get; private set; }
+    public Guid? ParentId { get; private set; }
+    public Parent? Parent { get; private set; }
 
     private readonly List<StudentGroup> _enrollments = new();
     public IReadOnlyCollection<StudentGroup> Enrollments => _enrollments.AsReadOnly();
@@ -100,7 +102,8 @@ public sealed class Student : AggregateRoot
         string? schoolName,
         Gender gender,
         string? address,
-        string? notes)
+        string? notes,
+        Guid? parentId = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Error.Validation("Student.FirstName", "First name cannot be empty.");
@@ -136,6 +139,8 @@ public sealed class Student : AggregateRoot
             address,
             StudentStatus.Active,
             notes);
+
+        student.ParentId = parentId;
 
         student.RaiseDomainEvent(new StudentRegisteredEvent(student.Id));
 
@@ -174,7 +179,8 @@ public sealed class Student : AggregateRoot
         string? schoolName,
         Gender gender,
         string? address,
-        string? notes)
+        string? notes,
+        Guid? parentId = null)
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Error.Validation("Student.FirstName", "First name cannot be empty.");
@@ -215,6 +221,7 @@ public sealed class Student : AggregateRoot
         Gender = gender;
         Address = address;
         Notes = notes;
+        ParentId = parentId;
 
         return Result.Success;
     }
@@ -222,5 +229,14 @@ public sealed class Student : AggregateRoot
     public void ChangeStatus(StudentStatus newStatus)
     {
         Status = newStatus;
+    }
+
+    public ErrorOr<Success> LinkParent(Guid parentId)
+    {
+        if (parentId == Guid.Empty)
+            return Error.Validation("Student.ParentId", "Parent ID cannot be empty.");
+
+        ParentId = parentId;
+        return Result.Success;
     }
 }

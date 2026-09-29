@@ -11,11 +11,13 @@ public partial class StudentsView : UserControl
     private readonly IStudentApiService _studentApiService;
     private readonly IDialogService _dialogService;
     private readonly IEducationalGroupApiService _educationalGroupApiService;
+    private readonly IParentApiService _parentApiService;
     private DataGridView _grid = null!;
     private TextBox _searchBox = null!;
     private AppButton _btnSearch = null!;
     private AppButton _btnAddStudent = null!;
     private AppButton _btnEnrollGroup = null!;
+    private AppButton _btnLinkParent = null!;
     private AppButton _btnRefresh = null!;
     private Label _statusLabel = null!;
 
@@ -27,14 +29,19 @@ public partial class StudentsView : UserControl
     private Label _lblPageInfo = null!;
     private TextBox _txtGoToPage = null!;
 
-    public StudentsView(IStudentApiService studentApiService, IDialogService dialogService, IEducationalGroupApiService educationalGroupApiService)
+    public StudentsView(
+        IStudentApiService studentApiService,
+        IDialogService dialogService,
+        IEducationalGroupApiService educationalGroupApiService,
+        IParentApiService parentApiService)
     {
         _studentApiService = studentApiService;
         _dialogService = dialogService;
         _educationalGroupApiService = educationalGroupApiService;
+        _parentApiService = parentApiService;
 
         InitializeComponent();
-
+        _grid.ApplyModernTheme();
         _ = LoadStudentsAsync();
     }
 
@@ -282,6 +289,108 @@ public partial class StudentsView : UserControl
 
         pnlContainer.Controls.Add(cmbGroups);
         pnlContainer.Controls.Add(lblGroup);
+        pnlContainer.Controls.Add(btnSave);
+
+        form.Controls.Add(pnlContainer);
+        form.ShowDialog(this);
+    }
+
+    private async Task OpenLinkParentDialogAsync()
+    {
+        if (_grid.SelectedRows.Count == 0)
+        {
+            _dialogService.ShowError("الرجاء تحديد طالب من القائمة أولاً", "تنبيه");
+            return;
+        }
+
+        var selectedRow = _grid.SelectedRows[0];
+        if (selectedRow.Cells["Id"].Value is not Guid studentId)
+        {
+            _dialogService.ShowError("لم يتم العثور على معرف الطالب.", "خطأ");
+            return;
+        }
+        var studentName = selectedRow.Cells["FullName"].Value?.ToString() ?? "الطالب";
+
+        // Fetch parents
+        List<ParentDto>? parents = null;
+        try
+        {
+            parents = await _parentApiService.GetAllParentsAsync();
+        }
+        catch(Exception ex)
+        {
+            _dialogService.ShowError($"خطأ أثناء الاتصال: {ex.Message}", "خطأ");
+            return;
+        }
+
+        if (parents == null || parents.Count == 0)
+        {
+            _dialogService.ShowInfo("لا يوجد أولياء أمور متاحين. الرجاء إضافة ولي أمر أولاً.", "معلومة");
+            return;
+        }
+
+        using var form = new Form
+        {
+            Text = $"ربط الطالب: {studentName}",
+            Size = new Size(400, 250),
+            StartPosition = FormStartPosition.CenterParent,
+            BackColor = AppTheme.BackgroundDark,
+            ForeColor = AppTheme.TextPrimary,
+            RightToLeft = RightToLeft.Yes,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false
+        };
+
+        var pnlContainer = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
+        var lblParent = new Label { Text = "اختر ولي الأمر:", Dock = DockStyle.Top, Height = 25, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption };
+        var cmbParents = new ComboBox
+        {
+            Dock = DockStyle.Top,
+            Height = 35,
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            DataSource = parents,
+            DisplayMember = "FullName",
+            ValueMember = "Id",
+            BackColor = AppTheme.SurfaceCard,
+            ForeColor = AppTheme.TextPrimary,
+            Font = AppTheme.FontBody
+        };
+
+        var btnSave = new AppButton
+        {
+            Text = "ربط ولي الأمر",
+            Variant = ButtonVariant.Primary,
+            Dock = DockStyle.Bottom,
+            Height = 40
+        };
+
+        btnSave.Click += async (s, e) =>
+        {
+            if (cmbParents.SelectedValue == null) return;
+            var parentId = (Guid)cmbParents.SelectedValue;
+            
+            try
+            {
+                var success = await _studentApiService.LinkParentAsync(studentId, parentId);
+                if (success)
+                {
+                    _dialogService.ShowInfo("تم ربط ولي الأمر بنجاح!", "نجاح");
+                    form.Close();
+                }
+                else
+                {
+                    _dialogService.ShowError("فشل الربط. تأكد من البيانات أو حاول مرة أخرى.", "خطأ");
+                }
+            }
+            catch (Exception ex)
+            {
+                _dialogService.ShowError($"خطأ أثناء الاتصال: {ex.Message}", "خطأ");
+            }
+        };
+
+        pnlContainer.Controls.Add(cmbParents);
+        pnlContainer.Controls.Add(lblParent);
         pnlContainer.Controls.Add(btnSave);
 
         form.Controls.Add(pnlContainer);

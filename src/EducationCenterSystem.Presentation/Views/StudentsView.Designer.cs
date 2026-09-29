@@ -77,6 +77,16 @@ namespace EducationCenterSystem.Presentation.WinForms.Views
             };
             _btnEnrollGroup.Click += async (s, e) => await OpenEnrollStudentDialogAsync();
 
+            _btnLinkParent = new AppButton
+            {
+                Text = "ربط بولي أمر",
+                Variant = ButtonVariant.Secondary,
+                Width = 140,
+                Height = 40,
+                Margin = new Padding(0, 0, 10, 0)
+            };
+            _btnLinkParent.Click += async (s, e) => await OpenLinkParentDialogAsync();
+
             _btnRefresh = new AppButton
             {
                 Text = "تحديث",
@@ -89,6 +99,7 @@ namespace EducationCenterSystem.Presentation.WinForms.Views
 
             actionContainer.Controls.Add(_btnAddStudent);
             actionContainer.Controls.Add(_btnEnrollGroup);
+            actionContainer.Controls.Add(_btnLinkParent);
             actionContainer.Controls.Add(_btnRefresh);
 
             topPanel.Controls.Add(titleContainer, 0, 0);

@@ -30,6 +30,8 @@ public sealed class RegisterStudentCommandHandlerTests
         // Arrange
         var command = new RegisterCommand(
             FirstName: "Ahmed",
+            SecondName: "Ali",
+            ThirdName: "Mohamed",
             LastName: "Alaa",
             Email: "ahmed@example.com",
             PhoneNumber: "01012345678",
@@ -73,6 +75,8 @@ public sealed class RegisterStudentCommandHandlerTests
         // Arrange
         var command = new RegisterCommand(
             FirstName: "Ahmed",
+            SecondName: "Ali",
+            ThirdName: "Mohamed",
             LastName: "Alaa",
             Email: "existing@example.com",
             PhoneNumber: "01012345678",
