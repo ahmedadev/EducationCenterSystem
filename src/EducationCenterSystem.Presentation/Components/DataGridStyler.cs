@@ -1,6 +1,3 @@
-using System.Drawing;
-using System.Windows.Forms;
-
 namespace EducationCenterSystem.Presentation.WinForms.Components;
 
 public static class DataGridStyler

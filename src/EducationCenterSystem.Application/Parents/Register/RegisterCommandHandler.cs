@@ -1,4 +1,3 @@
-using EducationCenterSystem.Application.Common.Interfaces;
 using EducationCenterSystem.Domain.Entities;
 using EducationCenterSystem.Domain.Repositories;
 using EducationCenterSystem.Domain.ValueObjects;

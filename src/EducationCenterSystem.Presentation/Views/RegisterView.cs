@@ -1,7 +1,6 @@
 using EducationCenterSystem.Presentation.WinForms.Components;
 using EducationCenterSystem.Presentation.WinForms.Models.DTOs.Auth;
 using EducationCenterSystem.Presentation.WinForms.Services.Abstractions;
-using EducationCenterSystem.Presentation.WinForms.Theme;
 
 namespace EducationCenterSystem.Presentation.WinForms.Views;
 

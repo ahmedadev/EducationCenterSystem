@@ -1,5 +1,4 @@
 using EducationCenterSystem.Domain.Entities;
-using EducationCenterSystem.Domain.Primitives;
 
 namespace EducationCenterSystem.Domain.Repositories;
 
