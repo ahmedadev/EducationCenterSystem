@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Api.Authentication;
+using EducationCenterSystem.Api.Authentication;
 using EducationCenterSystem.Api.Contracts;
 using EducationCenterSystem.Application.Teachers.Delete;
 using EducationCenterSystem.Application.Teachers.GetAll;
@@ -110,6 +110,8 @@ public sealed class TeachersController : ApiController
         var command = new UpdateProfileCommand(
             id,
             request.FirstName,
+            request.SecondName,
+            request.ThirdName,
             request.LastName,
             request.Email,
             request.PhoneNumber,

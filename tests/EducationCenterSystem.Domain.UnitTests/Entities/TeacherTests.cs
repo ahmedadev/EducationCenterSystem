@@ -23,6 +23,8 @@ public sealed class TeacherTests
         // Act
         var result = Teacher.Register(
             firstName,
+            "الثاني",
+            "الثالث",
             lastName,
             _validEmail,
             _validPhone,
@@ -54,6 +56,8 @@ public sealed class TeacherTests
         // Act
         var result = Teacher.Register(
             "طارق",
+            "الثاني",
+            "الثالث",
             "محمود",
             _validEmail,
             _validPhone,
@@ -77,6 +81,8 @@ public sealed class TeacherTests
         // Arrange
         var teacher = Teacher.Register(
             "طارق",
+            "الثاني",
+            "الثالث",
             "محمود",
             _validEmail,
             _validPhone,

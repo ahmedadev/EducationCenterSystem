@@ -30,6 +30,8 @@ public sealed class RegisterTeacherCommandHandlerTests
         // Arrange
         var command = new RegisterCommand(
             FirstName: "Mohamed",
+            SecondName: "Ali",
+            ThirdName: "Ahmed",
             LastName: "Hassan",
             Email: "mohamed.hassan@example.com",
             PhoneNumber: "01098765432",
@@ -75,6 +77,8 @@ public sealed class RegisterTeacherCommandHandlerTests
         // Arrange
         var command = new RegisterCommand(
             FirstName: "Mohamed",
+            SecondName: "Ali",
+            ThirdName: "Ahmed",
             LastName: "Hassan",
             Email: "duplicate@example.com",
             PhoneNumber: "01098765432",
@@ -108,6 +112,8 @@ public sealed class RegisterTeacherCommandHandlerTests
         // Arrange
         var command = new RegisterCommand(
             FirstName: "Tarek",
+            SecondName: "Ali",
+            ThirdName: "Ahmed",
             LastName: "Mahmoud",
             Email: "tarek@example.com",
             PhoneNumber: "01234567890",
@@ -122,6 +128,8 @@ public sealed class RegisterTeacherCommandHandlerTests
 
         var existingTeacher = Teacher.Register(
             "Existing",
+            "Second",
+            "Third",
             "Teacher",
             Email.Create("exist@example.com").Value,
             PhoneNumber.Create("01011112222").Value,

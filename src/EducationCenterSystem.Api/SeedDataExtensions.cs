@@ -8,6 +8,19 @@ namespace EducationCenterSystem.Api;
 
 public static class SeedDataExtensions
 {
+    public const string DefaultAdminEmail = "admin@educationcenter.com";
+    public const string DefaultAdminPassword = "Admin123456!";
+
+    private static readonly string[] _maleNames = { "أحمد", "محمد", "محمود", "يوسف", "عمر", "علي", "إبراهيم", "كريم", "حسن", "حسين", "خالد", "طارق", "زياد", "مصطفى", "حمزة", "هشام", "عصام", "أشرف", "سامح", "مدحت", "شريف", "حازم", "ياسر", "عمرو", "تامر", "مجدي", "وليد", "وائل", "هاني", "أكرم", "بهاء", "رامي", "شادي", "علاء", "عماد", "جمال", "كمال", "سعيد", "صلاح" };
+    private static readonly string[] _femaleNames = { "سارة", "مريم", "نور", "فاطمة", "سلمى", "آية", "حبيبة", "ملك", "رنا", "ياسمين", "شهد", "فريدة", "جنا", "ندى", "هاجر", "منى", "ريهام", "هبة", "إيمان", "نهى", "سحر", "عبير", "نادية", "حنان", "وفاء", "أمل", "داليا", "شيماء", "رانيا", "سماح", "أسماء", "دعاء", "زينب", "هند", "مي", "مروة", "رحاب", "نجلاء", "شيرين", "بسمة" };
+    private static readonly string[] _lastNames = { "علاء", "خالد", "شريف", "السيد", "طارق", "حسام", "مصطفى", "فتحي", "عادل", "إيهاب", "رضوان", "توفيق", "عبد الرحمن", "الشافعي", "البدري", "المنشاوي", "الشناوي", "عبد الفتاح", "المهدي", "الصاوي", "البيومي", "السعدني", "الجوهري", "المغربي", "الغندور", "النحاس", "الفقي", "الباز", "القاضي", "زهران", "دسوقي", "السعيد", "رمضان", "مختار", "رياض", "منصور", "شاهين", "سليمان", "شفيق", "عبد الله", "حافظ", "فاروق", "عثمان", "عامر", "صادق" };
+    private static readonly string[] _grades = { "الصف الأول الإعدادي", "الصف الثاني الإعدادي", "الصف الثالث الإعدادي", "الصف الأول الثانوي", "الصف الثاني الثانوي", "الصف الثالث الثانوي" };
+    private static readonly string[] _schools = { "مدرسة المستقبل لغات", "مدرسة المتفوقين STEM", "مدرسة الأورمان الثانوية", "مدرسة النور الخاصة", "مدرسة النيل المصرية", "مدرسة السلام الرسمية" };
+    private static readonly string[] _addresses = { "القاهرة، المعادي", "الجيزة، المهندسين", "الإسكندرية، لوران", "القليوبية، شبرا الخيمة", "المنصورة، حي الجامعة", "الشرقية، القومية", "الغربية، طنطا", "القاهرة، مدينة نصر", "الجيزة، الدقي", "الإسكندرية، سموحة", "القليوبية، بنها", "المنصورة، المشاية", "الشرقية، الزقازيق", "طنطا، النحاس" };
+    private static readonly string[] _subjects = { "اللغة العربية", "اللغة الإنجليزية", "اللغة الفرنسية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا", "الفلسفة والمنطق", "الجيولوجيا", "الحاسب الآلي" };
+    private static readonly string[] _qualifications = { "بكالوريوس تربية", "ماجستير مناهج وطرق تدريس", "دبلومة تربوية عامة", "بكالوريوس علوم ورياضيات", "ليسانس آداب وتربية", "دكتوراه في المناهج التعليمية" };
+    private static readonly string[] _notesList = { "معلم أول خبير ومعتمد", "رئيس قسم المادة للمرحلة الثانوية", "حاصل على درع التميز التعليمي", "معلم معتمد للمرحلتين الإعدادية والثانوية", "منسق تدريب المعلمين الجدد" };
+
     public static async Task SeedDataAsync(IServiceProvider services)
     {
         using var scope = services.CreateScope();
@@ -21,12 +34,6 @@ public static class SeedDataExtensions
             return;
         }
 
-        var maleFirstNames = new[] { "أحمد", "محمد", "محمود", "يوسف", "عمر", "علي", "إبراهيم", "كريم", "حسن", "حسين", "خالد", "طارق", "زياد", "مصطفى", "حمزة" };
-        var femaleFirstNames = new[] { "سارة", "مريم", "نور", "فاطمة", "سلمى", "آية", "حبيبة", "ملك", "رنا", "ياسمين", "شهد", "فريدة", "جنا", "ندى", "هاجر" };
-        var lastNames = new[] { "علاء", "خالد", "شريف", "السيد", "طارق", "حسام", "مصطفى", "فتحي", "عادل", "إيهاب", "رضوان", "توفيق", "عبد الرحمن", "الشافعي", "البدري", "المنشاوي" };
-        var grades = new[] { "الصف الأول الإعدادي", "الصف الثاني الإعدادي", "الصف الثالث الإعدادي", "الصف الأول الثانوي", "الصف الثاني الثانوي", "الصف الثالث الثانوي" };
-        var schools = new[] { "مدرسة المستقبل لغات", "مدرسة المتفوقين STEM", "مدرسة الأورمان الثانوية", "مدرسة النور الخاصة", "مدرسة النيل المصرية", "مدرسة السلام الرسمية" };
-        var cities = new[] { "القاهرة، مدينة نصر", "الجيزة، الدقي", "الإسكندرية، سموحة", "القليوبية، بنها", "المنصورة، المشاية", "الشرقية، الزقازيق", "طنطا، النحاس" };
 
         dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -38,9 +45,9 @@ public static class SeedDataExtensions
             bool isFemale = (i % 2 == 0);
             Gender gender = isFemale ? Gender.Female : Gender.Male;
             string firstName = isFemale 
-                ? femaleFirstNames[(i / 2) % femaleFirstNames.Length] 
-                : maleFirstNames[(i / 2) % maleFirstNames.Length];
-            string lastName = lastNames[i % lastNames.Length];
+                ? _femaleNames[(i / 2) % _femaleNames.Length] 
+                : _maleNames[(i / 2) % _maleNames.Length];
+            string lastName = _lastNames[i % _lastNames.Length];
 
             var emailResult = Email.Create($"student{i:D6}@education.eg");
             var phoneResult = PhoneNumber.Create($"010{i:D8}");
@@ -51,10 +58,10 @@ public static class SeedDataExtensions
             int day = 1 + (i % 28);
             DateTime dob = new DateTime(year, month, day, 0, 0, 0, DateTimeKind.Utc);
             string nationalId = $"3{i:D13}"; // Exactly 14 digits, unique
-            string grade = grades[i % grades.Length];
+            string grade = _grades[i % _grades.Length];
             string code = $"STU-{i:D6}";
-            string school = schools[i % schools.Length];
-            string address = cities[i % cities.Length];
+            string school = _schools[i % _schools.Length];
+            string address = _addresses[i % _addresses.Length];
             string? notes = (i % 3 == 0) ? "طالب متميز ومتفوق" : (i % 5 == 0 ? "يحتاج لمتابعة في الواجبات" : null);
 
             var studentResult = Student.Register(
@@ -97,10 +104,24 @@ public static class SeedDataExtensions
         dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
     }
 
-    public static async Task SeedTeachersDataAsync(IServiceProvider services, int targetCount = 1000)
+    public static async Task SeedTeachersDataAsync(IServiceProvider services, int targetCount = 700)
     {
         using var scope = services.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+
+        var existingTeachers = await dbContext.Teachers.Where(t => t.SecondName == "" || t.ThirdName == "").ToListAsync();
+        if (existingTeachers.Any())
+        {
+            for (int i = 0; i < existingTeachers.Count; i++)
+            {
+                var t = existingTeachers[i];
+                string secondName = _maleNames[(i * 2) % _maleNames.Length];
+                string thirdName = _maleNames[(i * 3) % _maleNames.Length];
+                t.UpdateProfile(t.FirstName, secondName, thirdName, t.LastName, t.Email, t.PhoneNumber, t.DateOfBirth, t.NationalId, t.TeacherCode, t.Subject, t.Qualification, t.Gender, t.Address, t.Notes);
+            }
+            await dbContext.SaveChangesAsync();
+        }
 
         int currentCount = await dbContext.Teachers.CountAsync();
         if (currentCount >= targetCount)
@@ -108,13 +129,7 @@ public static class SeedDataExtensions
             return;
         }
 
-        var maleFirstNames = new[] { "أحمد", "محمد", "محمود", "طارق", "هشام", "عصام", "أشرف", "سامح", "مدحت", "شريف", "حازم", "ياسر", "خالد", "عمرو", "إبراهيم" };
-        var femaleFirstNames = new[] { "منى", "ريهام", "هبة", "إيمان", "نهى", "سحر", "عبير", "نادية", "حنان", "وفاء", "أمل", "داليا", "شيماء", "رانيا", "سماح" };
-        var lastNames = new[] { "الشناوي", "عبد الفتاح", "المهدي", "الصاوي", "البيومي", "السعدني", "الجوهري", "المغربي", "الغندور", "النحاس", "الفقي", "الباز", "القاضي", "زهران", "دسوقي" };
-        var subjects = new[] { "اللغة العربية", "اللغة الإنجليزية", "اللغة الفرنسية", "الرياضيات", "الفيزياء", "الكيمياء", "الأحياء", "التاريخ", "الجغرافيا", "الفلسفة والمنطق", "الجيولوجيا", "الحاسب الآلي" };
-        var qualifications = new[] { "بكالوريوس تربية", "ماجستير مناهج وطرق تدريس", "دبلومة تربوية عامة", "بكالوريوس علوم ورياضيات", "ليسانس آداب وتربية", "دكتوراه في المناهج التعليمية" };
-        var addresses = new[] { "القاهرة، المعادي", "الجيزة، المهندسين", "الإسكندرية، لوران", "القليوبية، شبرا الخيمة", "المنصورة، حي الجامعة", "الشرقية، القومية", "الغربية، طنطا" };
-        var notesList = new[] { "معلم أول خبير ومعتمد", "رئيس قسم المادة للمرحلة الثانوية", "حاصل على درع التميز التعليمي", "معلم معتمد للمرحلتين الإعدادية والثانوية", "منسق تدريب المعلمين الجدد" };
+
 
         dbContext.ChangeTracker.AutoDetectChangesEnabled = false;
 
@@ -123,14 +138,21 @@ public static class SeedDataExtensions
 
         for (int i = currentCount + 1; i <= targetCount; i++)
         {
-            bool isFemale = (i % 2 == 0);
-            Gender gender = isFemale ? Gender.Female : Gender.Male;
-            string firstName = isFemale
-                ? femaleFirstNames[(i / 2) % femaleFirstNames.Length]
-                : maleFirstNames[(i / 2) % maleFirstNames.Length];
-            string lastName = lastNames[i % lastNames.Length];
+            // First 500 are male, next 200 are female
+            bool isMale = i <= 500;
+            Gender gender = isMale ? Gender.Male : Gender.Female;
+            
+            string firstName = isMale
+                ? _maleNames[i % _maleNames.Length]
+                : _femaleNames[i % _femaleNames.Length];
+            
+            // Second and Third names are usually male names for both genders in Egypt
+            string secondName = _maleNames[(i * 2) % _maleNames.Length];
+            string thirdName = _maleNames[(i * 3) % _maleNames.Length];
+            string lastName = _lastNames[i % _lastNames.Length];
 
-            var emailResult = Email.Create($"teacher{i:D4}@education.eg");
+            string uniqueStr = Guid.NewGuid().ToString()[..4];
+            var emailResult = Email.Create($"teacher{i:D4}_{uniqueStr}@education.eg");
             var phoneResult = PhoneNumber.Create($"012{i:D8}");
 
             int birthYear = 1970 + (i % 25);
@@ -138,15 +160,23 @@ public static class SeedDataExtensions
             int birthDay = 1 + (i % 28);
             DateTime dob = new DateTime(birthYear, birthMonth, birthDay, 0, 0, 0, DateTimeKind.Utc);
 
+            string randomSuffix = Guid.NewGuid().ToString("N")[..4].ToUpper();
             string nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}01{i:D4}";
-            string teacherCode = $"TCH-{i:D4}";
-            string subject = subjects[i % subjects.Length];
-            string qualification = qualifications[i % qualifications.Length];
-            string address = addresses[i % addresses.Length];
-            string notes = notesList[i % notesList.Length];
+            // Make NationalId exactly 14 digits, ensure unique by modifying the last part if it clashes, but since i is sequential it's fine unless i overlaps. We'll use a random number for the end.
+            int rndPart = new Random().Next(1000, 9999);
+            nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}{rndPart}{i:D3}";
+            if (nationalId.Length > 14) nationalId = nationalId.Substring(0, 14);
+
+            string teacherCode = $"TCH-{i:D4}-{randomSuffix}";
+            string subject = _subjects[i % _subjects.Length];
+            string qualification = _qualifications[i % _qualifications.Length];
+            string address = _addresses[i % _addresses.Length];
+            string notes = _notesList[i % _notesList.Length];
 
             var teacherResult = Teacher.Register(
                 firstName,
+                secondName,
+                thirdName,
                 lastName,
                 emailResult.Value,
                 phoneResult.Value,
@@ -184,7 +214,7 @@ public static class SeedDataExtensions
         dbContext.ChangeTracker.AutoDetectChangesEnabled = true;
     }
 
-    public static async Task SeedTeachersAsync(this WebApplication app, int targetCount = 1000)
+    public static async Task SeedTeachersAsync(this WebApplication app, int targetCount = 700)
     {
         using var scope = app.Services.CreateScope();
         await SeedTeachersDataAsync(scope.ServiceProvider, targetCount);
@@ -201,8 +231,8 @@ public static class SeedDataExtensions
             var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole is not null)
             {
-                var emailResult = Email.Create("admin@educationcenter.com");
-                string passwordHash = passwordHasher.Hash(app.Configuration["AdminPassword"] ?? "Admin123456!");
+                var emailResult = Email.Create(DefaultAdminEmail);
+                string passwordHash = passwordHasher.Hash(app.Configuration["AdminPassword"] ?? DefaultAdminPassword);
 
                 var adminUserResult = User.Create(
                     "System",

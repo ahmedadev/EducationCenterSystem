@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Repositories;
+using EducationCenterSystem.Domain.Repositories;
 using EducationCenterSystem.Domain.ValueObjects;
 using ErrorOr;
 using MediatR;
@@ -62,6 +62,8 @@ public sealed class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileC
 
         var updateResult = teacher.UpdateProfile(
             request.FirstName,
+            request.SecondName,
+            request.ThirdName,
             request.LastName,
             emailResult.Value,
             phoneNumberResult.Value,

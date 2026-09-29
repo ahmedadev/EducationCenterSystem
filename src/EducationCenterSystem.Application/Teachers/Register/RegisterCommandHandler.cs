@@ -43,6 +43,8 @@ public sealed class RegisterCommandHandler : IRequestHandler<RegisterCommand, Er
 
         var teacherResult = Teacher.Register(
             request.FirstName,
+            request.SecondName,
+            request.ThirdName,
             request.LastName,
             emailResult.Value,
             phoneResult.Value,

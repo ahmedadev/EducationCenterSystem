@@ -11,6 +11,8 @@ internal sealed class TeacherConfiguration : IEntityTypeConfiguration<Teacher>
         builder.HasKey(t => t.Id);
 
         builder.Property(t => t.FirstName).HasMaxLength(100).IsRequired();
+        builder.Property(t => t.SecondName).HasMaxLength(100).IsRequired();
+        builder.Property(t => t.ThirdName).HasMaxLength(100).IsRequired();
         builder.Property(t => t.LastName).HasMaxLength(100).IsRequired();
 
         builder.OwnsOne(t => t.Email, emailBuilder =>

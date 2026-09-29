@@ -9,6 +9,8 @@ namespace EducationCenterSystem.Domain.Entities;
 public sealed class Teacher : AggregateRoot
 {
     public string FirstName { get; private set; }
+    public string SecondName { get; private set; }
+    public string ThirdName { get; private set; }
     public string LastName { get; private set; }
     public Email Email { get; private set; }
     public PhoneNumber PhoneNumber { get; private set; }
@@ -30,6 +32,8 @@ public sealed class Teacher : AggregateRoot
     private Teacher() : base()
     {
         FirstName = default!;
+        SecondName = default!;
+        ThirdName = default!;
         LastName = default!;
         Email = default!;
         PhoneNumber = default!;
@@ -40,6 +44,8 @@ public sealed class Teacher : AggregateRoot
     private Teacher(
         Guid id,
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -55,6 +61,8 @@ public sealed class Teacher : AggregateRoot
         string? notes) : base(id)
     {
         FirstName = firstName;
+        SecondName = secondName;
+        ThirdName = thirdName;
         LastName = lastName;
         Email = email;
         PhoneNumber = phoneNumber;
@@ -72,6 +80,8 @@ public sealed class Teacher : AggregateRoot
 
     public static ErrorOr<Teacher> Register(
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -86,6 +96,12 @@ public sealed class Teacher : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Error.Validation("Teacher.FirstName", "First name cannot be empty.");
+
+        if (string.IsNullOrWhiteSpace(secondName))
+            return Error.Validation("Teacher.SecondName", "Second name cannot be empty.");
+
+        if (string.IsNullOrWhiteSpace(thirdName))
+            return Error.Validation("Teacher.ThirdName", "Third name cannot be empty.");
 
         if (string.IsNullOrWhiteSpace(lastName))
             return Error.Validation("Teacher.LastName", "Last name cannot be empty.");
@@ -105,6 +121,8 @@ public sealed class Teacher : AggregateRoot
         var teacher = new Teacher(
             Guid.NewGuid(),
             firstName,
+            secondName,
+            thirdName,
             lastName,
             email,
             phoneNumber,
@@ -141,6 +159,8 @@ public sealed class Teacher : AggregateRoot
 
     public ErrorOr<Success> UpdateProfile(
         string firstName,
+        string secondName,
+        string thirdName,
         string lastName,
         Email email,
         PhoneNumber phoneNumber,
@@ -155,6 +175,12 @@ public sealed class Teacher : AggregateRoot
     {
         if (string.IsNullOrWhiteSpace(firstName))
             return Error.Validation("Teacher.FirstName", "First name cannot be empty.");
+
+        if (string.IsNullOrWhiteSpace(secondName))
+            return Error.Validation("Teacher.SecondName", "Second name cannot be empty.");
+
+        if (string.IsNullOrWhiteSpace(thirdName))
+            return Error.Validation("Teacher.ThirdName", "Third name cannot be empty.");
 
         if (string.IsNullOrWhiteSpace(lastName))
             return Error.Validation("Teacher.LastName", "Last name cannot be empty.");
@@ -172,6 +198,8 @@ public sealed class Teacher : AggregateRoot
             return Error.Validation("Teacher.PhoneNumber", "Phone number cannot be null.");
 
         FirstName = firstName;
+        SecondName = secondName;
+        ThirdName = thirdName;
         LastName = lastName;
         Email = email;
         PhoneNumber = phoneNumber;
