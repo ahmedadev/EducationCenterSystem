@@ -11,7 +11,7 @@ public static class AppTheme
     public static Color SurfaceHeader { get; private set; }
     public static Color BorderSubtle { get; private set; }
     public static Color BorderFocus { get; private set; }
-    
+
     // Accents
     public static Color AccentPrimary { get; private set; }
     public static Color AccentPrimaryHover { get; private set; }
@@ -42,9 +42,9 @@ public static class AppTheme
             SurfaceCard = ColorTranslator.FromHtml("#111827");
             SurfaceCardHover = ColorTranslator.FromHtml("#1F2937");
             SurfaceHeader = ColorTranslator.FromHtml("#0B0F19");
-            BorderSubtle = ColorTranslator.FromHtml("#374151"); 
+            BorderSubtle = ColorTranslator.FromHtml("#374151");
             BorderFocus = ColorTranslator.FromHtml("#10B981");
-            
+
             AccentPrimary = ColorTranslator.FromHtml("#059669");
             AccentPrimaryHover = ColorTranslator.FromHtml("#047857");
             AccentPrimaryPressed = ColorTranslator.FromHtml("#064E3B");
@@ -66,7 +66,7 @@ public static class AppTheme
             SurfaceHeader = ColorTranslator.FromHtml("#FFFFFF");
             BorderSubtle = ColorTranslator.FromHtml("#E2E8F0"); // Light border
             BorderFocus = ColorTranslator.FromHtml("#10B981");
-            
+
             AccentPrimary = ColorTranslator.FromHtml("#059669");
             AccentPrimaryHover = ColorTranslator.FromHtml("#047857");
             AccentPrimaryPressed = ColorTranslator.FromHtml("#064E3B");

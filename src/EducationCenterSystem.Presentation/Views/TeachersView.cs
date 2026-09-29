@@ -64,7 +64,7 @@ public partial class TeachersView : UserControl
                         {
                             SerialNumber = index++,
                             TeacherCode = t.TeacherCode,
-                            FullName = $"{t.FirstName} {t.LastName}",
+                            FullName = $"{t.FirstName} {t.SecondName} {t.ThirdName} {t.LastName}".Replace("  ", " ").Trim(),
                             Specialization = t.Subject,
                             PhoneNumber = t.PhoneNumber,
                             Email = t.Email,

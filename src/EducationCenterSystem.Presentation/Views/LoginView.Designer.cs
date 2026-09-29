@@ -14,11 +14,11 @@ namespace EducationCenterSystem.Presentation.WinForms.Views
             this.RightToLeft = RightToLeft.Yes;
 
             // Center Panel (Glassmorphism inspired Login Card)
-            var card = new Panel
+            var card = new ModernCard
             {
                 Width = 400,
                 Height = 450,
-                BackColor = AppTheme.SurfaceCard,
+                BorderRadius = 16,
                 Padding = new Padding(40)
             };
 

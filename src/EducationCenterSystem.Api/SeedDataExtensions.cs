@@ -223,7 +223,9 @@ public static class SeedDataExtensions
         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         var passwordHasher = scope.ServiceProvider.GetRequiredService<Application.Common.Interfaces.IPasswordHasher>();
 
-        if (!await dbContext.Users.AnyAsync())
+        var adminUser = await dbContext.Users.FirstOrDefaultAsync(u => u.Email.Value == DefaultAdminEmail);
+        
+        if (adminUser == null)
         {
             var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole is not null)
@@ -247,12 +249,22 @@ public static class SeedDataExtensions
 
                 if (!adminUserResult.IsError)
                 {
-                    var adminUser = adminUserResult.Value;
+                    adminUser = adminUserResult.Value;
                     adminUser.AssignRole(adminRole.Id);
 
                     await dbContext.Users.AddAsync(adminUser);
                     await dbContext.SaveChangesAsync();
                 }
+            }
+        }
+        else
+        {
+            // Force update password for local development sync
+            var rawPassword = app.Configuration["AdminPassword"];
+            if (!string.IsNullOrEmpty(rawPassword))
+            {
+                adminUser.ChangePassword(passwordHasher.Hash(rawPassword));
+                await dbContext.SaveChangesAsync();
             }
         }
     }
