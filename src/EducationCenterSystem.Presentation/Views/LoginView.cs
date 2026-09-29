@@ -26,6 +26,68 @@ public partial class LoginView : UserControl
         _tokenProvider = tokenProvider;
 
         InitializeComponent();
+
+#if DEBUG
+        // Read credentials from dev-credentials.txt if it exists
+        try
+        {
+            var rootDir = new System.IO.DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory);
+            while (rootDir != null && !System.IO.File.Exists(System.IO.Path.Combine(rootDir.FullName, "EducationCenterSystem.sln")))
+            {
+                rootDir = rootDir.Parent;
+            }
+
+            if (rootDir != null)
+            {
+                var credFile = System.IO.Path.Combine(rootDir.FullName, "dev-credentials.txt");
+                if (System.IO.File.Exists(credFile))
+                {
+                    var lines = System.IO.File.ReadAllLines(credFile);
+                    var validAccounts = lines.Where(l => l.Contains("|")).ToList();
+                    
+                    if (validAccounts.Any())
+                    {
+                        var card = this.Controls[0];
+                        var combo = new ComboBox
+                        {
+                            Dock = DockStyle.Top,
+                            DropDownStyle = ComboBoxStyle.DropDownList,
+                            Font = AppTheme.FontCaption,
+                            Margin = new Padding(0, 0, 0, 15)
+                        };
+
+                        foreach (var acc in validAccounts)
+                        {
+                            var parts = acc.Split('|');
+                            if (parts.Length >= 3)
+                            {
+                                combo.Items.Add(new { Name = parts[0], Email = parts[1], Password = parts[2] });
+                            }
+                        }
+
+                        combo.DisplayMember = "Name";
+                        combo.SelectedIndexChanged += (s, e) =>
+                        {
+                            if (combo.SelectedItem != null)
+                            {
+                                dynamic selected = combo.SelectedItem;
+                                _emailField.Value = selected.Email;
+                                _passwordField.Value = selected.Password;
+                            }
+                        };
+
+                        card.Controls.Add(combo);
+                        // Move it to just below the subtitle label (index wise)
+                        card.Controls.SetChildIndex(combo, card.Controls.IndexOf(_emailField) + 1);
+
+                        if (combo.Items.Count > 0)
+                            combo.SelectedIndex = 0;
+                    }
+                }
+            }
+        }
+        catch { }
+#endif
     }
 
     private async Task PerformLoginAsync()

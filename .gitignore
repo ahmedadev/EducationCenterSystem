@@ -42,3 +42,5 @@ $RECYCLE.BIN/
 *.log
 api-error.log
 crash.log
+ 
+dev-credentials.txt

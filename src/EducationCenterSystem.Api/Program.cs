@@ -4,6 +4,7 @@ using EducationCenterSystem.Api;
 using EducationCenterSystem.Api.Authentication;
 using EducationCenterSystem.Application;
 using EducationCenterSystem.Infrastructure;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
@@ -144,6 +145,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("DefaultCorsPolicy");
+
+// Apply migrations automatically on startup
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<EducationCenterSystem.Infrastructure.ApplicationDbContext>();
+    await dbContext.Database.MigrateAsync();
+}
 
 // Pre-warm database connection, Npgsql type catalog, and EF Core query cache
 await app.WarmUpDatabaseAsync();
