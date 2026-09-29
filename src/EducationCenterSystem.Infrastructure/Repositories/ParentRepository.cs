@@ -42,10 +42,15 @@ internal sealed class ParentRepository : IParentRepository
         {
             var term = $"%{searchTerm}%";
             query = query.Where(p => EF.Functions.ILike(p.FirstName, term) ||
+                                     EF.Functions.ILike(p.SecondName, term) ||
+                                     EF.Functions.ILike(p.ThirdName, term) ||
                                      EF.Functions.ILike(p.LastName, term) ||
-                                     EF.Functions.ILike(p.Email!.Value, term) ||
                                      EF.Functions.ILike(p.PhoneNumber.Value, term) ||
-                                     EF.Functions.ILike(p.NationalId!, term));
+                                     EF.Functions.ILike(p.NationalId!, term) ||
+                                     p.Children.Any(c => EF.Functions.ILike(c.FirstName, term) ||
+                                                         EF.Functions.ILike(c.SecondName, term) ||
+                                                         EF.Functions.ILike(c.ThirdName, term) ||
+                                                         EF.Functions.ILike(c.LastName, term)));
         }
 
         var totalCount = await query.CountAsync(cancellationToken);

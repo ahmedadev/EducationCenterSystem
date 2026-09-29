@@ -315,7 +315,8 @@ public partial class StudentsView : UserControl
         List<ParentDto>? parents = null;
         try
         {
-            parents = await _parentApiService.GetAllParentsAsync();
+            var initialParents = await _parentApiService.GetPagedParentsAsync(1, 100, string.Empty);
+            parents = initialParents?.Items?.ToList() ?? new List<ParentDto>();
         }
         catch(Exception ex)
         {
@@ -332,7 +333,7 @@ public partial class StudentsView : UserControl
         using var form = new Form
         {
             Text = $"ربط الطالب: {studentName}",
-            Size = new Size(400, 250),
+            Size = new Size(400, 300),
             StartPosition = FormStartPosition.CenterParent,
             BackColor = AppTheme.BackgroundDark,
             ForeColor = AppTheme.TextPrimary,
@@ -343,7 +344,14 @@ public partial class StudentsView : UserControl
         };
 
         var pnlContainer = new Panel { Dock = DockStyle.Fill, Padding = new Padding(20) };
-        var lblParent = new Label { Text = "اختر ولي الأمر:", Dock = DockStyle.Top, Height = 25, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption };
+        
+        var pnlSearch = new Panel { Dock = DockStyle.Top, Height = 45, Padding = new Padding(0, 0, 0, 10) };
+        var txtSearch = new TextBox { Dock = DockStyle.Fill, Font = AppTheme.FontBody, BackColor = AppTheme.SurfaceCard, ForeColor = AppTheme.TextPrimary };
+        var btnSearch = new AppButton { Text = "بحث", Dock = DockStyle.Left, Width = 80, Variant = ButtonVariant.Secondary };
+        pnlSearch.Controls.Add(txtSearch);
+        pnlSearch.Controls.Add(btnSearch);
+
+        var lblParent = new Label { Text = "اختر ولي الأمر (ابحث بالاسم الرباعي للأب أو للابن):", Dock = DockStyle.Top, Height = 25, ForeColor = AppTheme.TextSecondary, Font = AppTheme.FontCaption };
         var cmbParents = new ComboBox
         {
             Dock = DockStyle.Top,
@@ -355,6 +363,19 @@ public partial class StudentsView : UserControl
             BackColor = AppTheme.SurfaceCard,
             ForeColor = AppTheme.TextPrimary,
             Font = AppTheme.FontBody
+        };
+
+        btnSearch.Click += async (s, e) =>
+        {
+            try
+            {
+                var paged = await _parentApiService.GetPagedParentsAsync(1, 100, txtSearch.Text);
+                cmbParents.DataSource = paged?.Items ?? new List<ParentDto>();
+            }
+            catch(Exception ex)
+            {
+                _dialogService.ShowError($"خطأ أثناء البحث: {ex.Message}", "خطأ");
+            }
         };
 
         var btnSave = new AppButton
@@ -391,6 +412,7 @@ public partial class StudentsView : UserControl
 
         pnlContainer.Controls.Add(cmbParents);
         pnlContainer.Controls.Add(lblParent);
+        pnlContainer.Controls.Add(pnlSearch);
         pnlContainer.Controls.Add(btnSave);
 
         form.Controls.Add(pnlContainer);

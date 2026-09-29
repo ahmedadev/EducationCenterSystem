@@ -13,4 +13,7 @@ public sealed record ParentDto(
     string? Address,
     string? Notes,
     DateTime RegisteredOnUtc,
-    int ChildrenCount);
+    int ChildrenCount)
+{
+    public string FullName => $"{FirstName} {SecondName} {ThirdName} {LastName}";
+}
