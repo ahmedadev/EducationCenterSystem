@@ -9,7 +9,6 @@ namespace EducationCenterSystem.Api;
 public static class SeedDataExtensions
 {
     public const string DefaultAdminEmail = "admin@educationcenter.com";
-    public const string DefaultAdminPassword = "Admin123456!";
 
     private static readonly string[] _maleNames = { "أحمد", "محمد", "محمود", "يوسف", "عمر", "علي", "إبراهيم", "كريم", "حسن", "حسين", "خالد", "طارق", "زياد", "مصطفى", "حمزة", "هشام", "عصام", "أشرف", "سامح", "مدحت", "شريف", "حازم", "ياسر", "عمرو", "تامر", "مجدي", "وليد", "وائل", "هاني", "أكرم", "بهاء", "رامي", "شادي", "علاء", "عماد", "جمال", "كمال", "سعيد", "صلاح" };
     private static readonly string[] _femaleNames = { "سارة", "مريم", "نور", "فاطمة", "سلمى", "آية", "حبيبة", "ملك", "رنا", "ياسمين", "شهد", "فريدة", "جنا", "ندى", "هاجر", "منى", "ريهام", "هبة", "إيمان", "نهى", "سحر", "عبير", "نادية", "حنان", "وفاء", "أمل", "داليا", "شيماء", "رانيا", "سماح", "أسماء", "دعاء", "زينب", "هند", "مي", "مروة", "رحاب", "نجلاء", "شيرين", "بسمة" };
@@ -161,11 +160,9 @@ public static class SeedDataExtensions
             DateTime dob = new DateTime(birthYear, birthMonth, birthDay, 0, 0, 0, DateTimeKind.Utc);
 
             string randomSuffix = Guid.NewGuid().ToString("N")[..4].ToUpper();
-            string nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}01{i:D4}";
-            // Make NationalId exactly 14 digits, ensure unique by modifying the last part if it clashes, but since i is sequential it's fine unless i overlaps. We'll use a random number for the end.
-            int rndPart = new Random().Next(1000, 9999);
-            nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}{rndPart}{i:D3}";
-            if (nationalId.Length > 14) nationalId = nationalId.Substring(0, 14);
+            int rndPart = Random.Shared.Next(1000, 9999);
+            string nationalId = $"2{(birthYear % 100):D2}{birthMonth:D2}{birthDay:D2}{rndPart}{i:D3}";
+            if (nationalId.Length > 14) nationalId = nationalId[..14];
 
             string teacherCode = $"TCH-{i:D4}-{randomSuffix}";
             string subject = _subjects[i % _subjects.Length];
@@ -231,8 +228,16 @@ public static class SeedDataExtensions
             var adminRole = await dbContext.Roles.FirstOrDefaultAsync(r => r.Name == "Admin");
             if (adminRole is not null)
             {
+                // 🔒 Security: No hardcoded fallback password.
+                // Set AdminPassword in environment variables or User Secrets.
+                var rawPassword = app.Configuration["AdminPassword"]
+                    ?? throw new InvalidOperationException(
+                        "AdminPassword configuration key is required. " +
+                        "Set it via environment variable or User Secrets. " +
+                        "Example: dotnet user-secrets set \"AdminPassword\" \"<your-strong-password>\"");
+
                 var emailResult = Email.Create(DefaultAdminEmail);
-                string passwordHash = passwordHasher.Hash(app.Configuration["AdminPassword"] ?? DefaultAdminPassword);
+                string passwordHash = passwordHasher.Hash(rawPassword);
 
                 var adminUserResult = User.Create(
                     "System",

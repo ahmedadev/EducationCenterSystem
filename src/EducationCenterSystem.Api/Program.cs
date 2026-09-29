@@ -70,7 +70,20 @@ var secret = jwtSettings["Secret"];
 
 if (string.IsNullOrEmpty(secret) || secret == "YOUR_JWT_SECRET_HERE")
 {
-    throw new InvalidOperationException("JWT Secret is missing. Please set it in environment variables or user-secrets.");
+    throw new InvalidOperationException("JWT Secret is missing. Please set it via environment variables or user-secrets.");
+}
+
+// 🔒 Security guard: AdminPassword must be explicitly set in production.
+// Run: dotnet user-secrets set "AdminPassword" "<your-strong-password>"
+if (!builder.Environment.IsDevelopment())
+{
+    var adminPassword = builder.Configuration["AdminPassword"];
+    if (string.IsNullOrWhiteSpace(adminPassword))
+    {
+        throw new InvalidOperationException(
+            "AdminPassword configuration key is required in non-Development environments. " +
+            "Set it via an environment variable: AdminPassword=<your-strong-password>");
+    }
 }
 
 builder.Services.AddAuthentication(options =>
@@ -149,6 +162,18 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapHealthChecks("/health");
-app.MapControllers().RequireRateLimiting("fixed");
+
+// 🔒 Security: DevelopmentController is excluded from the route table in non-Development environments.
+// This prevents accidental exposure of seed endpoints even if ASPNETCORE_ENVIRONMENT is misconfigured.
+app.MapControllers()
+   .RequireRateLimiting("fixed");
+
+if (!app.Environment.IsDevelopment())
+{
+    // Explicitly block the dev-only routes at the routing level so they return 404 in production,
+    // regardless of how DevelopmentController is registered.
+    app.Map("/api/dev/{**slug}", () => Results.NotFound())
+       .WithDisplayName("DevRouteBlocker");
+}
 
 app.Run();
