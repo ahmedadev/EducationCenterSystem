@@ -20,7 +20,13 @@ internal sealed class GetPagedQueryHandler : IRequestHandler<GetPagedQuery, Erro
         int pageNumber = request.Page <= 0 ? 1 : request.Page;
         int pageSize = request.PageSize <= 0 ? 15 : request.PageSize;
 
-        var result = await _parentRepository.GetPagedAsync(request.SearchTerm, pageNumber, pageSize, cancellationToken);
+        var result = await _parentRepository.GetPagedAsync(
+            request.SearchTerm, 
+            pageNumber, 
+            pageSize, 
+            request.SortColumn, 
+            request.SortDirection, 
+            cancellationToken);
 
         var parents = result.Parents.Select(p => new ParentResponse(
             p.Id,

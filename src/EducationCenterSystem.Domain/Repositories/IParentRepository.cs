@@ -10,6 +10,8 @@ public interface IParentRepository
         string? searchTerm,
         int page,
         int pageSize,
+        string? sortColumn = null,
+        string? sortDirection = null,
         CancellationToken cancellationToken = default);
     void Add(Parent parent);
     void Update(Parent parent);

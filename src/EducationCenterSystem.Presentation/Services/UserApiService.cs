@@ -22,4 +22,10 @@ public class UserApiService : IUserApiService
         }
         return null;
     }
+
+    public async Task<bool> AssignRoleAsync(Guid userId, Guid roleId)
+    {
+        var response = await _httpClient.PostAsJsonAsync("api/users/assign-role", new { UserId = userId, RoleId = roleId });
+        return response.IsSuccessStatusCode;
+    }
 }

@@ -49,6 +49,9 @@ public partial class AttendanceView : UserControl
         statusCol.Items.Add("معذور");
         _grid.Columns.Add(statusCol);
 
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "وقت الحضور", Name = "CheckInTime", FillWeight = 40 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "وقت الانصراف", Name = "CheckOutTime", FillWeight = 40 });
+
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "ملاحظات", Name = "Notes", FillWeight = 60 });
     }
 
@@ -86,9 +89,10 @@ public partial class AttendanceView : UserControl
 
             if (students != null && students.Count > 0)
             {
+                var currentTime = DateTime.Now.ToString("HH:mm");
                 foreach (var s in students)
                 {
-                    int rowIdx = _grid.Rows.Add(s.StudentCode, s.StudentName, "حاضر", string.Empty);
+                    int rowIdx = _grid.Rows.Add(s.StudentCode, s.StudentName, "حاضر", currentTime, string.Empty, string.Empty);
                     _grid.Rows[rowIdx].Tag = s.StudentId;
                 }
                 _statusLabel.Text = $"تم تحميل {students.Count} طالب";
@@ -143,11 +147,25 @@ public partial class AttendanceView : UserControl
                         _ => 1
                     };
                     var notes = row.Cells["Notes"].Value?.ToString() ?? "";
+                    
+                    DateTime? checkIn = null;
+                    if (DateTime.TryParse(row.Cells["CheckInTime"].Value?.ToString(), out var parsedCheckIn))
+                    {
+                        checkIn = sessionDate.Add(parsedCheckIn.TimeOfDay);
+                    }
+                    
+                    DateTime? checkOut = null;
+                    if (DateTime.TryParse(row.Cells["CheckOutTime"].Value?.ToString(), out var parsedCheckOut))
+                    {
+                        checkOut = sessionDate.Add(parsedCheckOut.TimeOfDay);
+                    }
 
                     attendanceList.Add(new {
                         studentId,
                         status = statusEnum,
-                        notes
+                        notes,
+                        checkInTime = checkIn,
+                        checkOutTime = checkOut
                     });
                 }
             }

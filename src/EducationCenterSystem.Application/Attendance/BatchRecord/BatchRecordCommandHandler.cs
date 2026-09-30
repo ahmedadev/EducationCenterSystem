@@ -49,16 +49,29 @@ public sealed class BatchRecordCommandHandler : IRequestHandler<BatchRecordComma
             {
                 // Update
                 existing.UpdateStatus(reqRecord.Status, reqRecord.Notes);
+                if (reqRecord.CheckInTime.HasValue)
+                    existing.SetCheckInTime(reqRecord.CheckInTime.Value);
+                if (reqRecord.CheckOutTime.HasValue)
+                    existing.CheckOut(reqRecord.CheckOutTime.Value);
+                
                 _attendanceRecordRepository.Update(existing);
             }
             else
             {
                 // Create
-                var newRecordResult = AttendanceRecord.Create(session.Id, reqRecord.StudentId, reqRecord.Status, reqRecord.Notes);
+                var newRecordResult = AttendanceRecord.Create(session.Id, reqRecord.StudentId, reqRecord.Status, reqRecord.Notes, reqRecord.CheckInTime);
                 if (newRecordResult.IsError)
                 {
                     return newRecordResult.Errors;
                 }
+                
+                if (reqRecord.CheckOutTime.HasValue)
+                {
+                    var checkoutResult = newRecordResult.Value.CheckOut(reqRecord.CheckOutTime.Value);
+                    if (checkoutResult.IsError)
+                        return checkoutResult.Errors;
+                }
+
                 _attendanceRecordRepository.Add(newRecordResult.Value);
             }
         }

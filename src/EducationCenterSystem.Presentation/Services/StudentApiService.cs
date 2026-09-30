@@ -17,13 +17,14 @@ public class StudentApiService : IStudentApiService
         _logger = logger;
     }
 
-    public async Task<PagedResultModel<StudentModel>?> GetPagedStudentsAsync(int page, int pageSize, string? searchTerm = null, CancellationToken cancellationToken = default)
+    public async Task<PagedResultModel<StudentModel>?> GetPagedStudentsAsync(int page, int pageSize, string? searchTerm = null, string? sortColumn = null, string? sortDirection = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            var url = string.IsNullOrWhiteSpace(searchTerm)
-                ? $"{BaseUrl}?page={page}&pageSize={pageSize}"
-                : $"{BaseUrl}?page={page}&pageSize={pageSize}&searchTerm={Uri.EscapeDataString(searchTerm)}";
+            var url = $"{BaseUrl}?page={page}&pageSize={pageSize}";
+            if (!string.IsNullOrWhiteSpace(searchTerm)) url += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
+            if (!string.IsNullOrWhiteSpace(sortColumn)) url += $"&sortColumn={Uri.EscapeDataString(sortColumn)}";
+            if (!string.IsNullOrWhiteSpace(sortDirection)) url += $"&sortDirection={Uri.EscapeDataString(sortDirection)}";
             
             return await _httpClient.GetFromJsonAsync<PagedResultModel<StudentModel>>(url, cancellationToken);
         }

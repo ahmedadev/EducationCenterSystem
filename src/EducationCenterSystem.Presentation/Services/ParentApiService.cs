@@ -24,13 +24,12 @@ public class ParentApiService : IParentApiService
         return null;
     }
 
-    public async Task<PagedResultModel<ParentDto>?> GetPagedParentsAsync(int page, int pageSize, string? searchTerm = null)
+    public async Task<PagedResultModel<ParentDto>?> GetPagedParentsAsync(int page, int pageSize, string? searchTerm = null, string? sortColumn = null, string? sortDirection = null)
     {
         var query = $"?page={page}&pageSize={pageSize}";
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            query += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
-        }
+        if (!string.IsNullOrWhiteSpace(searchTerm)) query += $"&searchTerm={Uri.EscapeDataString(searchTerm)}";
+        if (!string.IsNullOrWhiteSpace(sortColumn)) query += $"&sortColumn={Uri.EscapeDataString(sortColumn)}";
+        if (!string.IsNullOrWhiteSpace(sortDirection)) query += $"&sortDirection={Uri.EscapeDataString(sortDirection)}";
 
         var response = await _httpClient.GetAsync($"api/parents/paged{query}");
         if (response.IsSuccessStatusCode)

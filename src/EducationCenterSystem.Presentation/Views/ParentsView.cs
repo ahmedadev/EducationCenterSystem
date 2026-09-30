@@ -23,14 +23,46 @@ public partial class ParentsView : UserControl
     private AppButton _btnPrev = null!;
     private Label _lblPageInfo = null!;
 
+    private string? _currentSortColumn;
+    private string? _currentSortDirection;
+
     public ParentsView(IParentApiService parentApiService, IDialogService dialogService)
     {
         _parentApiService = parentApiService;
         _dialogService = dialogService;
 
         InitializeComponent();
-        _grid.ApplyModernTheme();
+        ConfigureColumns();
+        EducationCenterSystem.Presentation.WinForms.Helpers.DataGridHelper.InitializeGrid(_grid);
+        _grid.ColumnHeaderMouseClick += Grid_ColumnHeaderMouseClick;
         _ = LoadParentsAsync();
+    }
+
+    private void Grid_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
+    {
+        var clickedColumn = _grid.Columns[e.ColumnIndex];
+        if (clickedColumn == null) return;
+        
+        var propertyName = clickedColumn.Name;
+        if (string.IsNullOrWhiteSpace(propertyName)) return;
+
+        if (_currentSortColumn == propertyName)
+        {
+            _currentSortDirection = _currentSortDirection == "asc" ? "desc" : "asc";
+        }
+        else
+        {
+            _currentSortColumn = propertyName;
+            _currentSortDirection = "asc";
+        }
+
+        foreach (DataGridViewColumn col in _grid.Columns)
+            col.HeaderCell.SortGlyphDirection = SortOrder.None;
+        
+        clickedColumn.HeaderCell.SortGlyphDirection = _currentSortDirection == "asc" ? SortOrder.Ascending : SortOrder.Descending;
+
+        _currentPage = 1;
+        _ = LoadParentsAsync(_searchBox?.Text);
     }
 
     private void ConfigureColumns()
@@ -39,10 +71,10 @@ public partial class ParentsView : UserControl
         _grid.Columns.Clear();
         _grid.Columns.Add(new DataGridViewTextBoxColumn { Name = "Id", DataPropertyName = "Id", Visible = false });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "#", DataPropertyName = "SerialNumber", FillWeight = 20 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الاسم الكامل", Name = "FullName", DataPropertyName = "FullName", FillWeight = 70 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الاسم الكامل", Name = "FirstName", DataPropertyName = "FullName", FillWeight = 70 }); // Map sort to FirstName
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الهاتف", DataPropertyName = "PhoneNumber", FillWeight = 50 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الوظيفة", DataPropertyName = "Job", FillWeight = 50 });
-        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الرقم القومي", DataPropertyName = "NationalId", FillWeight = 60 });
+        _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الرقم القومي", Name = "NationalId", DataPropertyName = "NationalId", FillWeight = 60 });
         _grid.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "عدد الأبناء", DataPropertyName = "ChildrenCount", FillWeight = 30 });
     }
 
@@ -51,7 +83,7 @@ public partial class ParentsView : UserControl
         try
         {
             _statusLabel.Text = "جاري التحميل...";
-            var paged = await _parentApiService.GetPagedParentsAsync(_currentPage, 20, query);
+            var paged = await _parentApiService.GetPagedParentsAsync(_currentPage, 20, query, _currentSortColumn, _currentSortDirection);
             
             if (paged != null)
             {

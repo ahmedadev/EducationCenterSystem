@@ -42,9 +42,11 @@ public sealed class TeachersController : ApiController
     public async Task<IActionResult> GetPaged(
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 15,
+        [FromQuery] string? sortColumn = null,
+        [FromQuery] string? sortDirection = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new GetPagedQuery(page, pageSize);
+        var query = new GetPagedQuery(page, pageSize, sortColumn, sortDirection);
         var result = await _sender.Send(query, cancellationToken);
 
         if (result.IsError)

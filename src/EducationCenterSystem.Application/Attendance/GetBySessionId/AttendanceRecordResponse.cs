@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Enums;
+using EducationCenterSystem.Domain.Enums;
 
 namespace EducationCenterSystem.Application.Attendance.GetBySessionId;
 
@@ -8,4 +8,6 @@ public sealed record AttendanceRecordResponse(
     Guid StudentId,
     string StudentName,
     AttendanceStatus Status,
-    string? Notes);
+    string? Notes,
+    DateTime? CheckInTime,
+    DateTime? CheckOutTime);

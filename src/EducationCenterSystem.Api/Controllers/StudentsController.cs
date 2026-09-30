@@ -36,9 +36,11 @@ public sealed class StudentsController : ApiController
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 15,
         [FromQuery] string? searchTerm = null,
+        [FromQuery] string? sortColumn = null,
+        [FromQuery] string? sortDirection = null,
         CancellationToken cancellationToken = default)
     {
-        var query = new Application.Students.GetPaged.GetPagedQuery(page, pageSize, searchTerm);
+        var query = new Application.Students.GetPaged.GetPagedQuery(page, pageSize, searchTerm, sortColumn, sortDirection);
         var result = await _sender.Send(query, cancellationToken);
 
         if (result.IsError)

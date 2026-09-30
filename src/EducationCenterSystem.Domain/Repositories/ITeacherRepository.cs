@@ -10,7 +10,12 @@ public interface ITeacherRepository
     Task<Teacher?> GetByNationalIdAsync(string nationalId, CancellationToken cancellationToken = default);
     Task<Teacher?> GetByTeacherCodeAsync(string teacherCode, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Teacher>> GetAllAsync(CancellationToken cancellationToken = default);
-    Task<(IReadOnlyList<Teacher> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default);
+    Task<(IReadOnlyList<Teacher> Items, int TotalCount)> GetPagedAsync(
+        int page, 
+        int pageSize, 
+        string? sortColumn = null, 
+        string? sortDirection = null, 
+        CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Teacher>> GetByNameAsync(string name, CancellationToken cancellationToken = default);
     Task<bool> IsEmailUniqueAsync(Email email, CancellationToken cancellationToken = default);
     void Update(Teacher teacher);

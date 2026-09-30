@@ -1,4 +1,4 @@
-﻿using EducationCenterSystem.Domain.Repositories;
+using EducationCenterSystem.Domain.Repositories;
 using ErrorOr;
 using MediatR;
 
@@ -23,6 +23,8 @@ public sealed class GetBySessionIdQueryHandler : IRequestHandler<GetBySessionIdQ
             r.StudentId,
             r.Student != null ? $"{r.Student.FirstName} {r.Student.LastName}" : "Unknown",
             r.Status,
-            r.Notes)).ToList().AsReadOnly();
+            r.Notes,
+            r.CheckInTime,
+            r.CheckOutTime)).ToList().AsReadOnly();
     }
 }

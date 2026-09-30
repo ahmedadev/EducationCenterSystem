@@ -7,7 +7,9 @@ namespace EducationCenterSystem.Application.Attendance.BatchRecord;
 public sealed record BatchAttendanceRecordDto(
     Guid StudentId,
     AttendanceStatus Status,
-    string? Notes);
+    string? Notes,
+    DateTime? CheckInTime,
+    DateTime? CheckOutTime);
 
 public sealed record BatchRecordCommand(
     Guid GroupId,

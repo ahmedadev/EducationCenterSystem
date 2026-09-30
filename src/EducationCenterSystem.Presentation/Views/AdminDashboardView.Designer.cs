@@ -128,6 +128,14 @@ namespace EducationCenterSystem.Presentation.WinForms.Views
             _gridUsers.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "رقم الهاتف", DataPropertyName = "PhoneNumber", FillWeight = 40 });
             _gridUsers.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الدور", DataPropertyName = "RoleName", FillWeight = 40 });
             _gridUsers.Columns.Add(new DataGridViewTextBoxColumn { HeaderText = "الحالة", DataPropertyName = "StatusText", FillWeight = 30 });
+            _gridUsers.Columns.Add(new DataGridViewTextBoxColumn { DataPropertyName = "Id", Visible = false });
+
+            // Context Menu for Actions
+            var contextMenu = new ContextMenuStrip { RightToLeft = RightToLeft.Yes };
+            var changeRoleItem = new ToolStripMenuItem("تغيير الصلاحية (الدور)");
+            changeRoleItem.Click += async (s, e) => await OpenChangeRoleDialogAsync();
+            contextMenu.Items.Add(changeRoleItem);
+            _gridUsers.ContextMenuStrip = contextMenu;
 
             this.Controls.Add(_gridUsers);
             this.Controls.Add(statsPanel);

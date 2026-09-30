@@ -20,7 +20,13 @@ public sealed class GetPagedQueryHandler
         int pageNumber = request.PageNumber <= 0 ? 1 : request.PageNumber;
         int pageSize = request.PageSize <= 0 ? 15 : request.PageSize;
 
-        var (students, totalCount) = await _studentRepository.GetPagedAsync(pageNumber, pageSize, request.SearchTerm, cancellationToken);
+        var (students, totalCount) = await _studentRepository.GetPagedAsync(
+            pageNumber, 
+            pageSize, 
+            request.SearchTerm, 
+            request.SortColumn, 
+            request.SortDirection, 
+            cancellationToken);
 
         var responseList = students.Select(student => new StudentResponse(
             student.Id,

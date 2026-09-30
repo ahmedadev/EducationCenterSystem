@@ -15,7 +15,7 @@ internal sealed class GetAllQueryHandler : IRequestHandler<GetAllQuery, ErrorOr<
 
     public async Task<ErrorOr<IReadOnlyCollection<ParentResponse>>> Handle(GetAllQuery request, CancellationToken cancellationToken)
     {
-        var result = await _parentRepository.GetPagedAsync(null, 1, 1000, cancellationToken);
+        var result = await _parentRepository.GetPagedAsync(null, 1, 1000, null, null, cancellationToken);
 
         var response = result.Parents.Select(p => new ParentResponse(
             p.Id,

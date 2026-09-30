@@ -5,5 +5,5 @@ using MediatR;
 
 namespace EducationCenterSystem.Application.Students.GetPaged;
 
-public sealed record GetPagedQuery(int PageNumber, int PageSize, string? SearchTerm = null) 
+public sealed record GetPagedQuery(int PageNumber, int PageSize, string? SearchTerm = null, string? SortColumn = null, string? SortDirection = null)
     : IRequest<ErrorOr<PagedResult<StudentResponse>>>;

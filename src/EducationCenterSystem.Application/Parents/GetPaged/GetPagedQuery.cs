@@ -8,4 +8,6 @@ namespace EducationCenterSystem.Application.Parents.GetPaged;
 public sealed record GetPagedQuery(
     string? SearchTerm,
     int Page,
-    int PageSize) : IRequest<ErrorOr<PagedResult<ParentResponse>>>;
+    int PageSize,
+    string? SortColumn = null,
+    string? SortDirection = null) : IRequest<ErrorOr<PagedResult<ParentResponse>>>;

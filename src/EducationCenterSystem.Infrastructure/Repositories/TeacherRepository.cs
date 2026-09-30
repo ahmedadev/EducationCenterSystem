@@ -40,7 +40,12 @@ internal sealed class TeacherRepository : ITeacherRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<(IReadOnlyList<Teacher> Items, int TotalCount)> GetPagedAsync(int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyList<Teacher> Items, int TotalCount)> GetPagedAsync(
+        int page, 
+        int pageSize, 
+        string? sortColumn = null, 
+        string? sortDirection = null, 
+        CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Teachers.AsNoTracking();
         int totalCount = await query.CountAsync(cancellationToken);
@@ -48,8 +53,17 @@ internal sealed class TeacherRepository : ITeacherRepository
         int skip = (page - 1) * pageSize;
         if (skip < 0) skip = 0;
 
+        bool isDesc = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortColumn?.ToLowerInvariant() switch
+        {
+            "firstname" => isDesc ? query.OrderByDescending(t => t.FirstName) : query.OrderBy(t => t.FirstName),
+            "lastname" => isDesc ? query.OrderByDescending(t => t.LastName) : query.OrderBy(t => t.LastName),
+            "teachercode" => isDesc ? query.OrderByDescending(t => t.TeacherCode) : query.OrderBy(t => t.TeacherCode),
+            "nationalid" => isDesc ? query.OrderByDescending(t => t.NationalId) : query.OrderBy(t => t.NationalId),
+            _ => query.OrderBy(t => t.TeacherCode)
+        };
+
         var items = await query
-            .OrderBy(t => t.TeacherCode)
             .Skip(skip)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

@@ -67,9 +67,9 @@ public class ParentsController : ControllerBase
     }
 
     [HttpGet("paged")]
-    public async Task<IActionResult> GetPaged([FromQuery] string? searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+    public async Task<IActionResult> GetPaged([FromQuery] string? searchTerm, [FromQuery] int page = 1, [FromQuery] int pageSize = 10, [FromQuery] string? sortColumn = null, [FromQuery] string? sortDirection = null)
     {
-        var result = await _sender.Send(new GetPagedQuery(searchTerm, page, pageSize));
+        var result = await _sender.Send(new GetPagedQuery(searchTerm, page, pageSize, sortColumn, sortDirection));
 
         if (result.IsError)
         {

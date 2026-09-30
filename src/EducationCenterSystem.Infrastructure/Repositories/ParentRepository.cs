@@ -32,7 +32,13 @@ internal sealed class ParentRepository : IParentRepository
             .FirstOrDefaultAsync(p => p.NationalId == nationalId, cancellationToken);
     }
 
-    public async Task<(IReadOnlyCollection<Parent> Parents, int TotalCount)> GetPagedAsync(string? searchTerm, int page, int pageSize, CancellationToken cancellationToken = default)
+    public async Task<(IReadOnlyCollection<Parent> Parents, int TotalCount)> GetPagedAsync(
+        string? searchTerm, 
+        int page, 
+        int pageSize, 
+        string? sortColumn = null, 
+        string? sortDirection = null, 
+        CancellationToken cancellationToken = default)
     {
         var query = _dbContext.Parents
             .Include(p => p.Children)
@@ -54,8 +60,17 @@ internal sealed class ParentRepository : IParentRepository
         }
 
         var totalCount = await query.CountAsync(cancellationToken);
+
+        bool isDesc = string.Equals(sortDirection, "desc", StringComparison.OrdinalIgnoreCase);
+        query = sortColumn?.ToLowerInvariant() switch
+        {
+            "firstname" => isDesc ? query.OrderByDescending(p => p.FirstName) : query.OrderBy(p => p.FirstName),
+            "lastname" => isDesc ? query.OrderByDescending(p => p.LastName) : query.OrderBy(p => p.LastName),
+            "nationalid" => isDesc ? query.OrderByDescending(p => p.NationalId) : query.OrderBy(p => p.NationalId),
+            _ => query.OrderByDescending(p => p.RegisteredOnUtc)
+        };
+
         var parents = await query
-            .OrderByDescending(p => p.RegisteredOnUtc)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
